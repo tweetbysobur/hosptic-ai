@@ -21,7 +21,7 @@ export default function SiteHeader() {
           </span>
         </Link>
 
-        <nav aria-label="Primary" className="ml-auto hidden items-center gap-1 md:flex">
+        <nav aria-label="Primary" className="ml-auto hidden items-center gap-1 lg:flex">
           {NAV_LINKS.map((l) => (
             <a key={l.href} href={l.href} className="rounded-full px-4 py-2 text-[15px] font-medium text-ink-2 transition hover:bg-surface hover:text-ink">
               {l.label}
@@ -29,7 +29,7 @@ export default function SiteHeader() {
           ))}
         </nav>
 
-        <div className="ml-auto hidden items-center gap-2 md:flex">
+        <div className="ml-auto hidden items-center gap-2 lg:flex">
           <Button href="/demo" variant="ghost" size="sm">Try demo</Button>
           <Button href="/login" variant="ghost" size="sm">Sign In</Button>
           <Button href="/register" variant="primary" size="sm">Get Started</Button>
@@ -37,7 +37,7 @@ export default function SiteHeader() {
 
         <button
           type="button"
-          className="ml-auto grid size-10 place-items-center rounded-full border border-line bg-surface text-ink md:hidden"
+          className="ml-auto grid size-10 place-items-center rounded-full border border-line bg-surface text-ink lg:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -48,7 +48,7 @@ export default function SiteHeader() {
       </div>
 
       {open && (
-        <div id="mobile-nav" className="border-t border-line bg-surface md:hidden">
+        <div id="mobile-nav" className="border-t border-line bg-surface lg:hidden">
           <nav aria-label="Mobile" className="mx-auto flex w-full max-w-[1200px] flex-col gap-1 px-5 py-4">
             {NAV_LINKS.map((l) => (
               <a key={l.href} href={l.href} onClick={close} className="rounded-xl px-3 py-3 text-base font-medium text-ink hover:bg-blush">

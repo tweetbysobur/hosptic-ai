@@ -1,24 +1,22 @@
 import Section from "@/components/layouts/Section";
-import SectionIntro from "@/components/ui/SectionIntro";
 import Icon from "@/components/ui/Icon";
 import { PRIVACY } from "@/lib/landing-content";
 
 export default function Privacy() {
   return (
-    <Section id="security" tone="canvas" labelledBy="security-title" className="!bg-ink">
-      <div className="grid gap-12 lg:grid-cols-[1fr_1.3fr] lg:gap-16">
+    <Section id="security" tone="canvas" labelledBy="security-title">
+      <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
         <div>
-          <SectionIntro id="security-title" tone="dark" eyebrow={PRIVACY.eyebrow} title={PRIVACY.title} description={PRIVACY.description} />
-          <p className="mt-8 max-w-md text-sm leading-relaxed text-white/55">{PRIVACY.note}</p>
+          <h2 id="security-title" className="text-balance text-3xl font-extrabold leading-[1.12] tracking-[-0.02em] text-ink sm:text-4xl">{PRIVACY.title}</h2>
+          <p className="mt-4 text-pretty text-lg leading-relaxed text-ink-2">{PRIVACY.description}</p>
+          <p className="mt-6 text-sm leading-relaxed text-muted">{PRIVACY.note}</p>
         </div>
-        <ul className="grid gap-4 sm:grid-cols-2">
+        <ul className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
           {PRIVACY.items.map((p) => (
-            <li key={p.title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition duration-300 hover:border-primary/50 hover:bg-white/[0.07]">
-              <span className="inline-flex text-primary">
-                <Icon name={p.icon} size={18} />
-              </span>
-              <h3 className="mt-5 text-[17px] font-bold text-white">{p.title}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-white/65">{p.text}</p>
+            <li key={p.title} className="border-t border-line pt-6">
+              <Icon name={p.icon} size={20} className="text-rose" />
+              <h3 className="mt-4 text-[17px] font-bold text-ink">{p.title}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-ink-2">{p.text}</p>
             </li>
           ))}
         </ul>

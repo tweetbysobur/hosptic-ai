@@ -6,7 +6,7 @@ export default function SiteFooter() {
   return (
     <footer className="border-t border-line bg-surface">
       <div className="mx-auto w-full max-w-[1200px] px-5 py-14 sm:px-8">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
+        <div className="grid gap-12 lg:grid-cols-[1.6fr_repeat(3,1fr)]">
           <div>
             <Link href="/" className="inline-flex items-center gap-2.5" aria-label="Hosptic AI home">
               <Logo size={34} title="Hosptic AI" />

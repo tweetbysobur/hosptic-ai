@@ -1,28 +1,16 @@
 import Section from "@/components/layouts/Section";
-import SectionIntro from "@/components/ui/SectionIntro";
-import Icon from "@/components/ui/Icon";
 import { PRODUCT_INTRO } from "@/lib/landing-content";
-
-const POINT_ICONS = ["CircleCheck", "Search", "FlaskConical"];
 
 export default function ProductIntro() {
   return (
-    <Section id="about" tone="canvas" labelledBy="about-title">
-      <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
-        <SectionIntro id="about-title" eyebrow={PRODUCT_INTRO.eyebrow} title={PRODUCT_INTRO.title} description={PRODUCT_INTRO.description} />
-        <ul className="flex flex-col gap-4">
-          {PRODUCT_INTRO.points.map((p, i) => (
-            <li key={p.title} className="flex gap-5 rounded-2xl border border-line bg-surface p-6 shadow-card transition duration-300 hover:border-primary/40">
-              <span className="inline-flex shrink-0 text-rose">
-                <Icon name={POINT_ICONS[i]} size={20} />
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-ink">{p.title}</h3>
-                <p className="mt-1 text-[15px] leading-relaxed text-muted">{p.text}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+    <Section id="about" tone="surface" labelledBy="about-title">
+      <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
+        <h2 id="about-title" className="text-balance text-3xl font-extrabold leading-[1.12] tracking-[-0.02em] text-ink sm:text-4xl">
+          {PRODUCT_INTRO.title}
+        </h2>
+        <div className="flex flex-col gap-4 text-pretty text-lg leading-relaxed text-ink-2">
+          {PRODUCT_INTRO.paragraphs.map((p) => <p key={p}>{p}</p>)}
+        </div>
       </div>
     </Section>
   );
