@@ -3,6 +3,7 @@
 import { Plus, MessagesSquare, Database, FileText, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import Link from "next/link";
 import Logo from "./Logo";
+import SignOutButton from "./auth/SignOutButton";
 
 const NAV = [
   { id: "conversations", label: "Conversations", icon: MessagesSquare },
@@ -63,11 +64,11 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
       {collapsed && <div style={{ flex: 1 }} />}
 
       <div className="sb-foot">
-        <div className="sb-user-avatar">DW</div>
         <div className="sb-user hide-collapsed">
-          <div>Demo workspace</div>
-          <div>Sign-in not yet available</div>
+          <div>Signed in</div>
+          <div>Hosptic workspace</div>
         </div>
+        <SignOutButton />
       </div>
     </aside>
   );
