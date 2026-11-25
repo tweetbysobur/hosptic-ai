@@ -1,0 +1,13 @@
+ward,age,length_of_stay,readmitted,insurance
+Medical,67,5,No,NHIS
+Surgical,45,3,No,Private
+Medical,72,9,Yes,NHIS
+Paediatric,8,2,No,NHIS
+Surgical,54,4,No,Self-pay
+Medical,81,12,Yes,Self-pay
+Paediatric,5,1,No,Private
+Surgical,39,6,Yes,NHIS
+Medical,59,7,No,Private
+Paediatric,11,3,No,NHIS
+Surgical,62,8,Yes,Self-pay
+Medical,77,10,Yes,NHIS
