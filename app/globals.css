@@ -464,3 +464,13 @@ table.data tr.hl td:first-child { box-shadow: inset 2px 0 0 var(--brand); font-w
 .notice-title { font-size: 14px; font-weight: 600; }
 .notice-text { font-size: 13.5px; color: var(--ink-2); margin-top: 2px; overflow-wrap: anywhere; }
 @media (max-width: 640px) { .notice { flex-wrap: wrap; } }
+
+/* Dataset upload (live workspace) */
+.upload-card { margin-bottom: 14px; }
+.upload-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.upload-field { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--ink-2); flex: 1 1 220px; min-width: 0; }
+.upload-field input[type="text"] { height: 36px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; }
+.upload-field input[type="file"] { font-size: 13px; max-width: 100%; }
+.upload-msg { font-size: 13.5px; margin: 0; }
+.upload-msg.error { color: var(--brand-ink); }
+.upload-msg.ok { color: var(--ink-2); }

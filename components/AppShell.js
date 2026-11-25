@@ -5,13 +5,13 @@ import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Workspace from "./Workspace";
 import { ConversationsPage, DatasetsPage, ReportsPage, ReportView } from "./Pages";
-import { loadConversations, saveConversations, loadReports, saveReports, uid, titleFrom, reportToMarkdown, downloadText } from "@/lib/store";
+import { loadConversations, saveConversations, loadReports, saveReports, uid, titleFrom, reportToMarkdown, downloadText, downloadBlob } from "@/lib/store";
 import { liveAdapter } from "@/lib/workspace/live-adapter";
 import { useSession } from "./auth/SessionProvider";
 import { ROLE_LABELS } from "@/lib/auth/session";
 import DemoBanner from "./demo/DemoBanner";
 
-const DEFAULT_DATASETS = ["maternal"];
+const DEMO_DEFAULT_DATASETS = ["maternal"];
 
 export default function AppShell({ adapter = liveAdapter }) {
   const [ready, setReady] = useState(false);
@@ -23,7 +23,12 @@ export default function AppShell({ adapter = liveAdapter }) {
   const [activeId, setActiveId] = useState(null);
   const [openReportId, setOpenReportId] = useState(null);
   const [datasets, setDatasets] = useState([]);
-  const [draftDatasets, setDraftDatasets] = useState(DEFAULT_DATASETS);
+  const [datasetsLoaded, setDatasetsLoaded] = useState(false);
+  const [datasetsError, setDatasetsError] = useState(null);
+  // Live workspaces start on the organisation's first dataset; the demo starts on the maternal set.
+  const DEFAULT_DATASETS = useMemo(() => (adapter.mode === "live" ? (datasets[0] ? [datasets[0].id] : []) : DEMO_DEFAULT_DATASETS), [adapter.mode, datasets]);
+  const [draftDatasets, setDraftDatasets] = useState(adapter.mode === "live" ? [] : DEMO_DEFAULT_DATASETS);
+  const remoteReports = typeof adapter.listReports === "function";
   const [pending, setPending] = useState(null);
   const [error, setError] = useState(null);
   const inFlight = useRef(false);
@@ -52,14 +57,33 @@ export default function AppShell({ adapter = liveAdapter }) {
     }
     const seeded = adapter.seed && !alreadySeeded ? seedDemo() : null;
     setConversations(seeded ? seeded.conversations : loadConversations(storageKeys.conversations));
-    setReports(seeded ? seeded.reports : loadReports(storageKeys.reports));
+    if (!remoteReports) setReports(seeded ? seeded.reports : loadReports(storageKeys.reports));
     try { setCollapsed(window.localStorage.getItem("hosptic.sidebar") === "collapsed"); } catch {}
     setReady(true);
-    adapter.listDatasets().then(setDatasets).catch(() => setDatasets([]));
-  }, [adapter, seedDemo, storageKeys]);
+  }, [adapter, seedDemo, storageKeys, remoteReports]);
+
+  const refreshDatasets = useCallback(() => {
+    setDatasetsError(null);
+    return adapter.listDatasets()
+      .then((list) => { setDatasets(list); return list; })
+      .catch((e) => { setDatasets([]); setDatasetsError(e.message || "Datasets could not be loaded"); return []; })
+      .finally(() => setDatasetsLoaded(true));
+  }, [adapter]);
+
+  const refreshReports = useCallback(() => {
+    if (!remoteReports) return Promise.resolve();
+    return adapter.listReports().then(setReports).catch(() => {});
+  }, [adapter, remoteReports]);
+
+  useEffect(() => { refreshDatasets(); refreshReports(); }, [refreshDatasets, refreshReports]);
+
+  // Select the first dataset once the organisation's datasets arrive.
+  useEffect(() => {
+    if (adapter.mode === "live" && !activeId && draftDatasets.length === 0 && datasets[0]) setDraftDatasets([datasets[0].id]);
+  }, [adapter.mode, activeId, draftDatasets.length, datasets]);
 
   useEffect(() => { if (ready) saveConversations(conversations, storageKeys.conversations); }, [conversations, ready, storageKeys]);
-  useEffect(() => { if (ready) saveReports(reports, storageKeys.reports); }, [reports, ready, storageKeys]);
+  useEffect(() => { if (ready && !remoteReports) saveReports(reports, storageKeys.reports); }, [reports, ready, storageKeys, remoteReports]);
 
   const resetDemo = () => {
     if (!window.confirm("Reset the demo? Sample conversations and reports will return to their original state.")) return;
@@ -90,7 +114,7 @@ export default function AppShell({ adapter = liveAdapter }) {
     setView("chat");
     setDrawer(false);
     setError(null);
-  }, []);
+  }, [DEFAULT_DATASETS]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -140,13 +164,16 @@ export default function AppShell({ adapter = liveAdapter }) {
 
     try {
       const history = conv.messages.filter((m) => m.role === "assistant").map((m) => m.response);
-      const response = await adapter.analyze({ message, datasetIds: conv.datasetIds, context: conv.context, history });
-      let reportId = null;
+      const response = await adapter.analyze({ message, datasetIds: conv.datasetIds, context: conv.context, history, datasets });
       if (response.type === "report" && response.report) {
-        reportId = uid();
-        const rep = { id: reportId, conversationId: id, ...response.report };
-        setReports((rs) => [rep, ...rs]);
-        response.report.id = reportId;
+        if (response.report.pdf) {
+          // Backend reports keep their own id; the list is reloaded so it matches the server.
+          refreshReports();
+        } else {
+          const reportId = uid();
+          setReports((rs) => [{ id: reportId, conversationId: id, ...response.report }, ...rs]);
+          response.report.id = reportId;
+        }
       }
       updateConversation(id, (c) => ({
         ...c,
@@ -169,9 +196,37 @@ export default function AppShell({ adapter = liveAdapter }) {
     setTimeout(() => ask(text), 0);
   };
 
-  const openReport = (report) => { setOpenReportId(report.id); setView("report"); setDrawer(false); };
-  const downloadReport = (report) => downloadText(`${report.title.slice(0, 50).replace(/[^\w]+/g, "-").toLowerCase()}.md`, reportToMarkdown(report));
-  const deleteReport = (id) => setReports((rs) => rs.filter((r) => r.id !== id));
+  const fileBase = (report) => report.title.slice(0, 50).replace(/[^\w]+/g, "-").toLowerCase();
+  const downloadReport = async (report) => {
+    if (!report.pdf) return downloadText(`${fileBase(report)}.md`, reportToMarkdown(report));
+    try {
+      const { blob, fileName } = await adapter.downloadReport(report);
+      downloadBlob(fileName || `${fileBase(report)}.pdf`, blob);
+    } catch (e) {
+      window.alert(`The report could not be downloaded. ${e.message || ""}`.trim());
+    }
+  };
+  // PDF reports open as a download; the in-app reader is for the demo's compiled reports.
+  const openReport = (report) => {
+    if (report.pdf) return downloadReport(report);
+    setOpenReportId(report.id); setView("report"); setDrawer(false);
+  };
+  const deleteReport = remoteReports ? null : (id) => setReports((rs) => rs.filter((r) => r.id !== id));
+
+  const uploadDataset = adapter.canUpload
+    ? async ({ file, name }) => {
+        const created = await adapter.uploadDataset({ file, name });
+        await refreshDatasets();
+        return created;
+      }
+    : null;
+  const deleteDataset = adapter.canUpload
+    ? async (id) => {
+        await adapter.deleteDataset(id);
+        setDraftDatasets((ids) => ids.filter((x) => x !== id));
+        await refreshDatasets();
+      }
+    : null;
 
   const openedReport = reports.find((r) => r.id === openReportId);
 
@@ -208,6 +263,9 @@ export default function AppShell({ adapter = liveAdapter }) {
             datasets={datasets}
             selectedDatasets={active ? active.datasetIds : draftDatasets}
             onDatasetsChange={setConversationDatasets}
+            singleDataset={!!adapter.singleDataset}
+            datasetsLoaded={datasetsLoaded}
+            onOpenDatasets={adapter.canUpload ? () => navigate("datasets") : null}
             onAsk={ask}
             pending={pending && pending.conversationId === active?.id ? pending : null}
             error={error && error.conversationId === active?.id ? error : null}
@@ -223,7 +281,16 @@ export default function AppShell({ adapter = liveAdapter }) {
           <ConversationsPage conversations={conversations} onOpen={openConversation} onRename={renameConversation} onDelete={deleteConversation} onNew={newAnalysis} />
         )}
         {view === "datasets" && (
-          <DatasetsPage datasets={datasets} onAnalyse={(id) => { newAnalysis(); setDraftDatasets([id]); }} />
+          <DatasetsPage
+            mode={adapter.mode}
+            datasets={datasets}
+            loaded={datasetsLoaded}
+            loadError={datasetsError}
+            onRetryLoad={refreshDatasets}
+            onUpload={uploadDataset}
+            onDelete={deleteDataset}
+            onAnalyse={(id) => { newAnalysis(); setDraftDatasets([id]); }}
+          />
         )}
         {view === "reports" && (
           <ReportsPage reports={reports} conversations={conversations} onOpen={openReport} onDownload={downloadReport} onDelete={deleteReport} />

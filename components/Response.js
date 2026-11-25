@@ -110,10 +110,10 @@ export default function Response({ response, onAsk, onOpenReport, onDownloadRepo
           <div className="doc-icon"><FileText size={20} strokeWidth={1.5} /></div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="report-title">{r.report.title}</div>
-            <div className="report-meta">{r.report.sections.length} sections · {r.report.dataset}</div>
+            <div className="report-meta">{[r.report.pdf ? "PDF report" : `${r.report.sections.length} sections`, r.report.dataset].filter(Boolean).join(" · ")}</div>
           </div>
           <button className="btn" onClick={() => onDownloadReport?.(r.report)}><Download size={14} /> Download</button>
-          <button className="btn primary" onClick={() => onOpenReport?.(r.report)}>Open</button>
+          {!r.report.pdf && <button className="btn primary" onClick={() => onOpenReport?.(r.report)}>Open</button>}
         </div>
       )}
 

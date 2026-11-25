@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Download, ArrowLeft, Printer, Plus, MessagesSquare } from "lucide-react";
+import { Pencil, Trash2, Download, ArrowLeft, Printer, Plus, MessagesSquare, Upload } from "lucide-react";
 import { relativeTime } from "@/lib/store";
 import { Evidence, Technical } from "./Response";
 
@@ -57,19 +57,83 @@ export function ConversationsPage({ conversations, onOpen, onRename, onDelete, o
   );
 }
 
-const TYPE_LABEL = { numeric: "Number", binary: "Yes / no", categorical: "Category", date: "Date" };
+const TYPE_LABEL = { numeric: "Number", binary: "Yes / no", categorical: "Category", date: "Date", text: "Text" };
 
-export function DatasetsPage({ datasets, onAnalyse }) {
+function UploadCard({ onUpload }) {
+  const [file, setFile] = useState(null);
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState(null);
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!file || busy) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const created = await onUpload({ file, name });
+      setMessage({ tone: "ok", text: `${created.name} is ready, with ${created.rows.toLocaleString()} rows and ${created.variables.length} columns you can analyse.` });
+      setFile(null);
+      setName("");
+      e.target.reset();
+    } catch (err) {
+      setMessage({ tone: "error", text: err.message || "The file could not be uploaded" });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <form className="card ds-card upload-card" onSubmit={submit}>
+      <div>
+        <h2>Upload a dataset</h2>
+        <p className="desc">CSV (UTF-8) or Excel (.xlsx), up to 10 MB, 100,000 rows and 200 columns. Columns that look like personal data, such as names or ID numbers, are detected and never analysed or sent to the AI.</p>
+      </div>
+      <div className="upload-row">
+        <label className="upload-field">
+          <span>File</span>
+          <input type="file" accept=".csv,.xlsx" onChange={(e) => setFile(e.target.files?.[0] || null)} disabled={busy} required />
+        </label>
+        <label className="upload-field">
+          <span>Name (optional)</span>
+          <input type="text" value={name} maxLength={160} placeholder={file ? file.name.replace(/\.[^.]+$/, "") : "For example, Maternity 2025"} onChange={(e) => setName(e.target.value)} disabled={busy} />
+        </label>
+        <button className="btn primary" type="submit" disabled={!file || busy}><Upload size={14} /> {busy ? "Uploading…" : "Upload"}</button>
+      </div>
+      {message && <p className={`upload-msg ${message.tone}`} role={message.tone === "error" ? "alert" : "status"}>{message.text}</p>}
+    </form>
+  );
+}
+
+export function DatasetsPage({ mode = "demo", datasets, loaded = true, loadError = null, onRetryLoad, onUpload, onDelete, onAnalyse }) {
+  const live = mode === "live";
+  const [deleting, setDeleting] = useState(null);
+  const remove = async (d) => {
+    if (!window.confirm(`Delete ${d.name}? The file is removed. Analyses and reports made from it stay readable.`)) return;
+    setDeleting(d.id);
+    try { await onDelete(d.id); } catch (e) { window.alert(e.message || "The dataset could not be deleted"); } finally { setDeleting(null); }
+  };
   return (
     <div className="page">
       <div className="page-inner">
         <div className="page-head">
           <div>
             <h1>Datasets</h1>
-            <p>Demonstration datasets for this preview. Connecting hospital data is not yet configured.</p>
+            <p>{live ? "Your organisation's datasets. Only members of your organisation can see them." : "Demonstration datasets with synthetic records. No real patient data."}</p>
           </div>
         </div>
-        {datasets.length === 0 && <div className="list"><div className="empty-list">Loading datasets…</div></div>}
+        {live && onUpload && <UploadCard onUpload={onUpload} />}
+        {loadError && (
+          <div className="notice" role="alert" style={{ marginTop: 14 }}>
+            <div className="notice-body">
+              <div className="notice-title">Datasets could not be loaded</div>
+              <div className="notice-text">{loadError}</div>
+            </div>
+            {onRetryLoad && <button className="btn" onClick={onRetryLoad}>Try again</button>}
+          </div>
+        )}
+        {!loaded && <div className="list"><div className="empty-list">Loading datasets…</div></div>}
+        {loaded && !loadError && datasets.length === 0 && (
+          <div className="list"><div className="empty-list">{live ? "No datasets yet. Upload a CSV or Excel file above to start." : "No datasets."}</div></div>
+        )}
         {datasets.map((d) => (
           <section className="card ds-card" key={d.id}>
             <div className="ds-card-head">
@@ -77,19 +141,23 @@ export function DatasetsPage({ datasets, onAnalyse }) {
                 <h2>{d.name}</h2>
                 <p className="desc">{d.description}</p>
               </div>
+              {onDelete && <button className="btn ghost" onClick={() => remove(d)} disabled={deleting === d.id} aria-label={`Delete ${d.name}`}><Trash2 size={14} /> {deleting === d.id ? "Deleting…" : "Delete"}</button>}
               <button className="btn primary" onClick={() => onAnalyse(d.id)}>Analyse</button>
             </div>
             <div className="ds-facts">
               <span><b>{d.rows.toLocaleString()}</b> {d.unit}</span>
-              <span><b>{d.variables.length}</b> variables</span>
+              <span><b>{d.variables.length}</b> {live ? "columns to analyse" : "variables"}</span>
               <span>Source: <b>{d.source}</b></span>
-              <span>Updated <b>{new Date(d.updated).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</b></span>
+              <span>{live ? "Uploaded" : "Updated"} <b>{new Date(d.updated).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</b></span>
             </div>
             <div className="var-tags">
               {d.variables.map((v) => (
-                <span className="var-tag" key={v.key} title={`${TYPE_LABEL[v.type]}${v.unit ? ` · ${v.unit}` : ""}${v.missing ? ` · ${v.missing} missing` : ""}`}>{v.label}</span>
+                <span className="var-tag" key={v.key} title={`${TYPE_LABEL[v.type] || v.type}${v.unit ? ` · ${v.unit}` : ""}${v.missing ? ` · ${v.missing} missing` : ""}`}>{v.label}</span>
               ))}
             </div>
+            {d.sensitiveColumns?.length > 0 && (
+              <p className="desc" style={{ fontSize: 12.5 }}>Personal data, not analysed: {d.sensitiveColumns.join(", ")}</p>
+            )}
           </section>
         ))}
       </div>
@@ -104,7 +172,7 @@ export function ReportsPage({ reports, conversations, onOpen, onDownload, onDele
         <div className="page-head">
           <div>
             <h1>Reports</h1>
-            <p>Reports compiled from your conversations. Ask &ldquo;Generate a report&rdquo; in any analysis to create one.</p>
+            <p>Reports compiled from your analyses. Ask &ldquo;Generate a report&rdquo; after any analysis to create one.</p>
           </div>
         </div>
         <div className="list">
@@ -115,11 +183,11 @@ export function ReportsPage({ reports, conversations, onOpen, onDownload, onDele
               <div className="row" key={r.id}>
                 <button className="row-main" onClick={() => onOpen(r)}>
                   <div className="row-title">{r.title}</div>
-                  <div className="row-meta">{r.sections.length} sections · {r.dataset} · {relativeTime(r.created)}{conv ? ` · from “${conv.title}”` : ""}</div>
+                  <div className="row-meta">{[r.pdf ? "PDF report" : `${r.sections.length} sections`, r.dataset, relativeTime(r.created)].filter(Boolean).join(" · ")}{conv ? ` · from “${conv.title}”` : ""}</div>
                 </button>
                 <div className="row-actions">
                   <button className="icon-btn" onClick={() => onDownload(r)} aria-label={`Download ${r.title}`} title="Download"><Download size={15} strokeWidth={1.75} /></button>
-                  <button className="icon-btn" onClick={() => { if (window.confirm("Delete this report? This can't be undone.")) onDelete(r.id); }} aria-label={`Delete ${r.title}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
+                  {onDelete && <button className="icon-btn" onClick={() => { if (window.confirm("Delete this report? This can't be undone.")) onDelete(r.id); }} aria-label={`Delete ${r.title}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>}
                 </div>
               </div>
             );

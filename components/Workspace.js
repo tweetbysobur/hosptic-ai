@@ -20,9 +20,10 @@ const STARTERS = {
   ],
 };
 
-const TYPE_SHORT = { numeric: "123", binary: "y/n", categorical: "abc", date: "date" };
+const TYPE_SHORT = { numeric: "123", binary: "y/n", categorical: "abc", date: "date", text: "txt" };
+const STARTER_ICONS = { compare: GitCompareArrows, distribution: ChartNoAxesColumn, trend: TrendingUp, drivers: Search, relationship: ChartScatter };
 
-export default function Workspace({ conversation, datasets, selectedDatasets, onDatasetsChange, onAsk, pending, error, onRetry, onRename, onDelete, onOpenReport, onDownloadReport, ready, preview = false }) {
+export default function Workspace({ conversation, datasets, selectedDatasets, onDatasetsChange, onAsk, pending, error, onRetry, onRename, onDelete, onOpenReport, onDownloadReport, ready, preview = false, singleDataset = false, datasetsLoaded = true, onOpenDatasets = null }) {
   const [text, setText] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [varsOpen, setVarsOpen] = useState(false);
@@ -69,19 +70,24 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
   };
 
   const toggleDataset = (id) => {
-    const next = selectedDatasets.includes(id) ? selectedDatasets.filter((x) => x !== id) : [...selectedDatasets, id];
+    const on = selectedDatasets.includes(id);
+    const next = on ? selectedDatasets.filter((x) => x !== id) : singleDataset ? [id] : [...selectedDatasets, id];
     onDatasetsChange(next);
+    if (singleDataset && !on) setPickerOpen(false);
   };
 
-  const primaryDs = selectedDatasets[0] || "maternal";
-  const starters = STARTERS[primaryDs] || STARTERS.maternal;
+  const primaryDs = selectedDatasets[0] || (onOpenDatasets ? null : "maternal");
+  // Live datasets carry starters built from their own columns; the demo uses the fixed sets above.
+  const starters = (dsById[primaryDs]?.starters || STARTERS[primaryDs] || (onOpenDatasets ? [] : STARTERS.maternal))
+    .map((s) => ({ ...s, icon: typeof s.icon === "string" ? STARTER_ICONS[s.icon] || Search : s.icon }));
+  const noData = Boolean(onOpenDatasets) && datasetsLoaded && datasets.length === 0;
 
   const composer = (
     <div className="composer-wrap">
       <div className="composer" ref={pickerRef}>
         {pickerOpen && (
           <div className="popover" role="dialog" aria-label="Choose datasets">
-            <div className="popover-label">Datasets to analyse</div>
+            <div className="popover-label">{singleDataset ? "Dataset to analyse" : "Datasets to analyse"}</div>
             {datasets.map((d) => {
               const on = selectedDatasets.includes(d.id);
               return (
@@ -94,7 +100,8 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
                 </button>
               );
             })}
-            {datasets.length === 0 && <div className="sb-empty">Loading datasets…</div>}
+            {datasets.length === 0 && <div className="sb-empty">{datasetsLoaded ? "No datasets yet." : "Loading datasets…"}</div>}
+            {onOpenDatasets && <button className="ds-option" onClick={() => { setPickerOpen(false); onOpenDatasets(); }}><span className="check"><Plus size={12} /></span><span><div className="ds-option-name">Upload a dataset</div></span></button>}
           </div>
         )}
         <label htmlFor="ask" className="sr-only">Ask a question about your data</label>
@@ -170,6 +177,15 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
               <p className="lead">
                 Ask in plain language. Hosptic runs the analysis, explains what it found and shows the evidence, with full statistical detail when you need it.
               </p>
+              {noData && (
+                <div className="notice" style={{ marginTop: 8 }}>
+                  <div className="notice-body">
+                    <div className="notice-title">Upload a dataset to start</div>
+                    <div className="notice-text">Add a CSV or Excel file of your hospital data. Then ask questions about it here.</div>
+                  </div>
+                  <button className="btn primary" onClick={onOpenDatasets}>Upload a dataset</button>
+                </div>
+              )}
               <div className="starter-grid">
                 {starters.map((s) => (
                   <button key={s.q} className="starter" onClick={() => submit(s.q)} disabled={!ready}>
@@ -193,7 +209,7 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
               {pending && (
                 <div className="thinking" role="status">
                   <span className="pulse"><span /><span /><span /></span>
-                  Analysing {pending.datasetIds.map((id) => dsById[id]?.name || id).join(" and ")}…
+                  Analysing {pending.datasetIds.map((id) => dsById[id]?.name || id).join(" and ")}…{onOpenDatasets ? " This can take up to a minute." : ""}
                 </div>
               )}
               {error && (
