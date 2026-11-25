@@ -38,7 +38,7 @@ export default async function LoginPage({ searchParams }) {
     <AuthLayout
       title="Sign in to Hosptic"
       description="Use your work email and password to open your organisation's workspace."
-      footer={<>New to Hosptic? <Link href="/register" className="font-semibold text-ink underline decoration-primary underline-offset-4 hover:text-rose">Create an account</Link></>}
+      footer={<div className="flex flex-col gap-2"><p>New to Hosptic? <Link href="/register" className="font-semibold text-ink underline decoration-primary underline-offset-4 hover:text-rose">Create an account</Link></p><p>Presenting or evaluating? <Link href="/demo" className="font-semibold text-ink underline decoration-primary underline-offset-4 hover:text-rose">Explore the demo</Link></p></div>}
     >
       <div className="flex flex-col gap-5">
         {banner && <Notice tone={banner.tone} title={banner.title}>{banner.text}</Notice>}

@@ -4,6 +4,7 @@ import { Plus, MessagesSquare, Database, FileText, PanelLeftClose, PanelLeftOpen
 import Link from "next/link";
 import Logo from "./Logo";
 import SignOutButton from "./auth/SignOutButton";
+import Icon from "./ui/Icon";
 
 const NAV = [
   { id: "conversations", label: "Conversations", icon: MessagesSquare },
@@ -11,7 +12,7 @@ const NAV = [
   { id: "reports", label: "Reports", icon: FileText },
 ];
 
-export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate, onNew, conversations, activeId, onOpenConversation, counts, onCloseDrawer }) {
+export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate, onNew, conversations, activeId, onOpenConversation, counts, onCloseDrawer, mode = "preview", workspace = { name: "Hospital workspace", meta: "Demonstration data" } }) {
   const recent = conversations.slice(0, 20);
   return (
     <aside className="sidebar" aria-label="Main navigation">
@@ -28,11 +29,11 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
         </button>
       </div>
 
-      <div className="sb-org" title="Hospital workspace · Demonstration data">
+      <div className="sb-org" title={`${workspace.name} · ${workspace.meta}`}>
         <div className="sb-org-avatar">HW</div>
         <div className="sb-org-text hide-collapsed">
-          <div className="sb-org-name">Hospital workspace</div>
-          <div className="sb-org-meta">Demonstration data</div>
+          <div className="sb-org-name">{workspace.name}</div>
+          <div className="sb-org-meta">{workspace.meta}</div>
         </div>
       </div>
 
@@ -65,10 +66,15 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
 
       <div className="sb-foot">
         <div className="sb-user hide-collapsed">
-          <div>Signed in</div>
-          <div>Hosptic workspace</div>
+          <div>{mode === "demo" ? "Demo session" : "Signed in"}</div>
+          <div>{mode === "demo" ? "No account needed" : "Hosptic workspace"}</div>
         </div>
-        <SignOutButton />
+        {mode === "live" && <SignOutButton />}
+        {mode === "demo" && (
+          <Link href="/" className="icon-btn" aria-label="Exit demo" title="Exit demo">
+            <Icon name="LogOut" size={16} />
+          </Link>
+        )}
       </div>
     </aside>
   );

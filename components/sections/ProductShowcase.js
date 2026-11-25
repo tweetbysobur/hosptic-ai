@@ -27,6 +27,7 @@ export default function ProductShowcase({ conversation, datasets, conversations 
           <div className="showcase-body" inert>
             <div className="shell">
               <Sidebar
+                mode="preview"
                 view="chat"
                 collapsed={false}
                 onToggleCollapse={noop}
