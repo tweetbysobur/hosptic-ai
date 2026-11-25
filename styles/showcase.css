@@ -1,0 +1,80 @@
+/* Landing page product preview. Scopes the app workspace layout to a fixed-height,
+   non-interactive frame so the real components render as a screenshot-style preview. */
+
+.showcase-body {
+  position: relative;
+  height: 740px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.showcase-body .shell {
+  height: 100%;
+  grid-template-columns: var(--sidebar-w) 1fr;
+}
+.showcase-body .sidebar {
+  position: relative;
+  inset: auto;
+  height: 100%;
+  width: auto;
+  transform: none;
+  box-shadow: none;
+  z-index: auto;
+}
+.showcase-body .main {
+  height: 100%;
+  min-width: 0;
+}
+.showcase-body .ws,
+.showcase-body .ws-col,
+.showcase-body .thread {
+  min-height: 0;
+}
+.showcase-body .ws-col {
+  height: 100%;
+}
+.showcase-body .thread {
+  flex: 1 1 0;
+  overflow: hidden;
+}
+.showcase-body .composer-wrap {
+  padding-bottom: 18px;
+}
+
+@media (max-width: 900px) {
+  .showcase-body {
+    height: 680px;
+  }
+  .showcase-body .shell {
+    grid-template-columns: 1fr;
+  }
+  .showcase-body .sidebar {
+    display: none;
+  }
+  .showcase-body .topbar {
+    display: flex;
+  }
+}
+
+/* Hero entrance: a short, purposeful rise. Disabled for reduced motion. */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hero-rise {
+  animation: hero-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.hero-delay-1 { animation-delay: 80ms; }
+.hero-delay-2 { animation-delay: 160ms; }
+.hero-delay-3 { animation-delay: 240ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise {
+    animation: none;
+  }
+}
