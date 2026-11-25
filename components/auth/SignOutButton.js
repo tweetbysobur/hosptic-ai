@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/ui/Icon";
-import { postJson, clearLocalWorkspaceData } from "@/lib/auth/client";
+import { apiClient } from "@/lib/api/client";
+import { clearLocalWorkspaceData } from "@/lib/auth/local-data";
 
-// Ends the session at the backend, clears cached workspace data on this device, then leaves
-// the protected area. Local data is cleared even when the backend cannot be reached.
+// Ends the session at the backend and clears cached workspace data on this device. Local data is
+// cleared even when the backend cannot be reached, and the sign-in page says so.
 export default function SignOutButton() {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -14,22 +15,19 @@ export default function SignOutButton() {
   const signOut = async () => {
     if (pending) return;
     setPending(true);
-    const result = await postJson("/api/auth/logout", {});
+    let reached = true;
+    try {
+      await apiClient.auth.logout();
+    } catch {
+      reached = false;
+    }
     clearLocalWorkspaceData();
-    const backendReached = result.ok && result.data?.backendReached !== false;
-    router.replace(backendReached ? "/login?signedOut=1" : "/login?signedOut=local");
+    router.replace(reached ? "/login?signedOut=1" : "/login?signedOut=local");
     router.refresh();
   };
 
   return (
-    <button
-      type="button"
-      onClick={signOut}
-      disabled={pending}
-      className="icon-btn disabled:opacity-50"
-      aria-label="Sign out"
-      title="Sign out"
-    >
+    <button type="button" onClick={signOut} disabled={pending} className="icon-btn disabled:opacity-50" aria-label="Sign out" title="Sign out">
       <Icon name="LogOut" size={16} />
     </button>
   );

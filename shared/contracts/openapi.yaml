@@ -1,0 +1,986 @@
+openapi: 3.0.3
+info:
+  title: Hosptic AI API
+  version: 0.1.0
+  description: |
+    Backend API for Hosptic AI. All responses use the envelope
+    `{ "success": true, "data": ... }` or `{ "success": false, "error": { "code", "message", "details?" } }`.
+
+    Authentication: login and register set three cookies.
+    - `access_token` (HTTP-only, path /api, 15 minutes)
+    - `refresh_token` (HTTP-only, path /api/v1/auth, 7 days)
+    - `csrf_token` (readable by JavaScript, path /)
+
+    Browser clients send cookies with `credentials: "include"` and must copy `csrf_token`
+    into the `X-CSRF-Token` header on every POST, PATCH and DELETE. Non-browser clients can
+    send `Authorization: Bearer <accessToken>` instead; CSRF does not apply to them.
+
+    The organisation is always resolved on the server from the authenticated membership.
+    The API never accepts an organizationId to choose whose data to read.
+
+    `x-permissions` on each operation lists the roles allowed to call it.
+servers:
+  - url: http://localhost:4000
+security:
+  - cookieAuth: []
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Organization
+  - name: Datasets
+  - name: Analysis
+  - name: Reports
+
+paths:
+  /api/v1/health:
+    get:
+      tags: [Auth]
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: object, properties: { status: { type: string, example: ok } } }
+
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a hospital and its first administrator
+      description: Creates the user, the organisation and an ORGANIZATION_ADMIN membership in one transaction. Sets auth cookies.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegisterRequest" }
+      responses:
+        "201":
+          description: Registered and signed in
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in
+      description: |
+        Signs in to the user's first active organisation, or to `organizationId` if the user is a member of it.
+        `organizationId` here only selects among the user's own memberships. It is checked against the database.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Sign out
+      description: Revokes the refresh token and clears cookies. Requires X-CSRF-Token when cookies are present.
+      parameters: [{ $ref: "#/components/parameters/CsrfHeader" }]
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Envelope" }
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Rotate the refresh token
+      description: Reads the refresh_token cookie, revokes it and issues new cookies. A reused refresh token is rejected.
+      parameters: [{ $ref: "#/components/parameters/CsrfHeader" }]
+      security: []
+      responses:
+        "200":
+          description: New session issued
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data: { type: object, properties: { accessToken: { type: string } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: Current user, organisation and role
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+      responses:
+        "200":
+          description: Current session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      user: { $ref: "#/components/schemas/User" }
+                      organization: { $ref: "#/components/schemas/OrganizationSummary" }
+                      role: { $ref: "#/components/schemas/Role" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/v1/organization:
+    get:
+      tags: [Organization]
+      summary: Get the current organisation
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+      responses:
+        "200":
+          description: Organisation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Organization" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    patch:
+      tags: [Organization]
+      summary: Update the current organisation
+      x-permissions: [ORGANIZATION_ADMIN]
+      parameters: [{ $ref: "#/components/parameters/CsrfHeader" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                name: { type: string, minLength: 2, maxLength: 160 }
+                email: { type: string, format: email, nullable: true }
+      responses:
+        "200":
+          description: Updated organisation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Organization" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/v1/organization/members:
+    get:
+      tags: [Organization]
+      summary: List members
+      x-permissions: [ORGANIZATION_ADMIN]
+      responses:
+        "200":
+          description: Members of the current organisation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { $ref: "#/components/schemas/Member" } }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/v1/organization/members/invite:
+    post:
+      tags: [Organization]
+      summary: Add an existing account as a member
+      description: The person must already have an account. Unknown emails return 404.
+      x-permissions: [ORGANIZATION_ADMIN]
+      parameters: [{ $ref: "#/components/parameters/CsrfHeader" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, role]
+              properties:
+                email: { type: string, format: email }
+                role: { $ref: "#/components/schemas/Role" }
+      responses:
+        "201":
+          description: Member added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Member" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /api/v1/organization/members/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    patch:
+      tags: [Organization]
+      summary: Change a member's role or status
+      description: The last active ORGANIZATION_ADMIN cannot be demoted or suspended.
+      x-permissions: [ORGANIZATION_ADMIN]
+      parameters: [{ $ref: "#/components/parameters/CsrfHeader" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                role: { $ref: "#/components/schemas/Role" }
+                status: { type: string, enum: [ACTIVE, SUSPENDED] }
+      responses:
+        "200":
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Member" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Organization]
+      summary: Remove a member
+      x-permissions: [ORGANIZATION_ADMIN]
+      parameters: [{ $ref: "#/components/parameters/CsrfHeader" }]
+      responses:
+        "200":
+          description: Removed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Envelope" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/datasets/upload:
+    post:
+      tags: [Datasets]
+      summary: Upload a CSV or XLSX dataset
+      description: |
+        The file content is validated, not only the extension. CSV must be UTF-8. Macro-enabled workbooks are rejected.
+        Limits: MAX_UPLOAD_MB (default 10), 100000 rows, 200 columns.
+        The file is stored privately at organizations/{organizationId}/datasets/{datasetId}/original.{ext}.
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER]
+      parameters: [{ $ref: "#/components/parameters/CsrfHeader" }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                name: { type: string, maxLength: 160 }
+                description: { type: string, maxLength: 1000 }
+      responses:
+        "201":
+          description: Dataset stored and profiled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/DatasetDetail"
+                      - type: object
+                        properties:
+                          quality: { $ref: "#/components/schemas/QualityReport" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "413": { $ref: "#/components/responses/TooLarge" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /api/v1/datasets:
+    get:
+      tags: [Datasets]
+      summary: List datasets
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Page of datasets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      items: { type: array, items: { $ref: "#/components/schemas/Dataset" } }
+                      meta: { $ref: "#/components/schemas/PageMeta" }
+
+  /api/v1/datasets/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [Datasets]
+      summary: Get dataset metadata and columns
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+      responses:
+        "200":
+          description: Dataset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/DatasetDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Datasets]
+      summary: Delete a dataset
+      description: |
+        Soft-deletes the dataset and removes the raw file from storage. Analyses and reports are kept.
+        Researchers can delete only datasets they uploaded.
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER]
+      parameters: [{ $ref: "#/components/parameters/CsrfHeader" }]
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Envelope" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/datasets/{id}/preview:
+    get:
+      tags: [Datasets]
+      summary: First rows of a dataset
+      description: Columns flagged as personal data are returned as "[masked]".
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST]
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      responses:
+        "200":
+          description: Preview rows
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      headers: { type: array, items: { type: string } }
+                      rows: { type: array, items: { type: object, additionalProperties: { type: string, nullable: true } } }
+                      maskedColumns: { type: array, items: { type: string } }
+                      totalRows: { type: integer }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/datasets/{id}/quality:
+    get:
+      tags: [Datasets]
+      summary: Data quality report
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+      parameters: [{ $ref: "#/components/parameters/IdPath" }]
+      responses:
+        "200":
+          description: Quality report computed at upload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/QualityReport" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/datasets/{id}/download:
+    get:
+      tags: [Datasets]
+      summary: Short-lived signed URL for the original file
+      description: Requires S3-compatible storage. Returns 501 with local storage. The URL expires in 300 seconds.
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST]
+      parameters: [{ $ref: "#/components/parameters/IdPath" }]
+      responses:
+        "200":
+          description: Signed URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      url: { type: string }
+                      expiresInSeconds: { type: integer }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "501": { $ref: "#/components/responses/NotSupported" }
+
+  /api/v1/analysis:
+    post:
+      tags: [Analysis]
+      summary: Ask a question about a dataset
+      description: |
+        Runs synchronously. Z.ai recommends a method and columns from column metadata only. The backend
+        validates the recommendation, computes the statistics in JavaScript, then asks Z.ai to explain them.
+        The explanation is checked against the computed numbers and the p-value. If it fails the check,
+        `interpretation` is null and a limitation explains why. A failed run returns status FAILED with `errorMessage`.
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST]
+      parameters: [{ $ref: "#/components/parameters/CsrfHeader" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [datasetId, question]
+              properties:
+                datasetId: { type: string, format: uuid }
+                question: { type: string, minLength: 5, maxLength: 1000, example: Analyse the relationship between maternal age and delivery complications. }
+      responses:
+        "201":
+          description: Analysis record with its final status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Analysis" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+    get:
+      tags: [Analysis]
+      summary: List analyses
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+        - name: datasetId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Page of analyses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      items: { type: array, items: { $ref: "#/components/schemas/Analysis" } }
+                      meta: { $ref: "#/components/schemas/PageMeta" }
+
+  /api/v1/analysis/{id}:
+    get:
+      tags: [Analysis]
+      summary: Get one analysis
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+      parameters: [{ $ref: "#/components/parameters/IdPath" }]
+      responses:
+        "200":
+          description: Analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Analysis" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/analysis/{id}/retry:
+    post:
+      tags: [Analysis]
+      summary: Re-run a FAILED analysis
+      description: Only the analysis owner or an ORGANIZATION_ADMIN can retry. Only FAILED analyses can be retried.
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST]
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+        - $ref: "#/components/parameters/CsrfHeader"
+      responses:
+        "200":
+          description: Analysis with its new status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Analysis" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /api/v1/reports:
+    post:
+      tags: [Reports]
+      summary: Generate a PDF report for a completed analysis
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER]
+      parameters: [{ $ref: "#/components/parameters/CsrfHeader" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [analysisId]
+              properties:
+                analysisId: { type: string, format: uuid }
+                title: { type: string, minLength: 3, maxLength: 160, default: Statistical analysis report }
+      responses:
+        "201":
+          description: Report record. status is READY or FAILED.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Report" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+    get:
+      tags: [Reports]
+      summary: List reports
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Page of reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      items: { type: array, items: { $ref: "#/components/schemas/Report" } }
+                      meta: { $ref: "#/components/schemas/PageMeta" }
+
+  /api/v1/reports/{id}:
+    get:
+      tags: [Reports]
+      summary: Get one report
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+      parameters: [{ $ref: "#/components/parameters/IdPath" }]
+      responses:
+        "200":
+          description: Report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Report" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/reports/{id}/download:
+    get:
+      tags: [Reports]
+      summary: Download the report PDF
+      description: Streams the PDF after checking the caller's organisation. Responses are marked private, no-store.
+      x-permissions: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+      parameters: [{ $ref: "#/components/parameters/IdPath" }]
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    CsrfHeader:
+      name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required for cookie-authenticated POST, PATCH and DELETE. Copy the csrf_token cookie value.
+      schema: { type: string }
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    Unauthorized:
+      description: Not authenticated, session expired, or membership no longer active
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    Forbidden:
+      description: Role not permitted, or CSRF check failed (code CSRF_FAILED)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    NotFound:
+      description: Not found in the caller's organisation. Other organisations' records always return 404.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    Conflict:
+      description: Duplicate or invalid state
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    TooLarge:
+      description: File exceeds the upload limit
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    Unprocessable:
+      description: Content is valid JSON but cannot be processed (bad file content, dataset not ready, analysis not complete)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    NotSupported:
+      description: Feature needs configuration that is not present
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  schemas:
+    Envelope:
+      type: object
+      properties:
+        success: { type: boolean }
+        data: { type: object }
+    ErrorResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        error:
+          type: object
+          properties:
+            code: { type: string, example: VALIDATION_ERROR }
+            message: { type: string }
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  path: { type: string }
+                  message: { type: string }
+    Role:
+      type: string
+      enum: [ORGANIZATION_ADMIN, RESEARCHER, ANALYST, VIEWER]
+    RegisterRequest:
+      type: object
+      required: [fullName, email, password, organizationName]
+      properties:
+        fullName: { type: string, minLength: 2, maxLength: 120 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 10, maxLength: 128, description: Must include a letter and a number }
+        organizationName: { type: string, minLength: 2, maxLength: 160 }
+        organizationEmail: { type: string, format: email }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+        organizationId: { type: string, format: uuid, description: Optional. Selects one of the user's own memberships. }
+    SessionResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:
+          type: object
+          properties:
+            user: { $ref: "#/components/schemas/User" }
+            organization: { $ref: "#/components/schemas/OrganizationSummary" }
+            role: { $ref: "#/components/schemas/Role" }
+            organizations:
+              type: array
+              items: { type: string, format: uuid }
+              description: Present on login when the user belongs to more than one organisation
+            accessToken: { type: string, description: Also set as the access_token cookie }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        fullName: { type: string }
+        email: { type: string, format: email }
+    OrganizationSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+    Organization:
+      allOf:
+        - $ref: "#/components/schemas/OrganizationSummary"
+        - type: object
+          properties:
+            email: { type: string, nullable: true }
+            createdAt: { type: string, format: date-time }
+    Member:
+      type: object
+      properties:
+        id: { type: string, format: uuid, description: Membership id }
+        role: { $ref: "#/components/schemas/Role" }
+        status: { type: string, enum: [ACTIVE, SUSPENDED] }
+        joinedAt: { type: string, format: date-time }
+        user: { $ref: "#/components/schemas/User" }
+    PageMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        pageSize: { type: integer }
+        total: { type: integer }
+        totalPages: { type: integer }
+    Dataset:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        originalFileName: { type: string }
+        fileType: { type: string, enum: [CSV, XLSX] }
+        fileSize: { type: integer }
+        rowCount: { type: integer }
+        columnCount: { type: integer }
+        status: { type: string, enum: [PROCESSING, READY, FAILED, DELETED] }
+        uploadedById: { type: string, format: uuid }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    DatasetColumn:
+      type: object
+      properties:
+        name: { type: string }
+        position: { type: integer }
+        inferredType: { type: string, enum: [NUMERIC, CATEGORICAL, DATE, BOOLEAN, TEXT, EMPTY] }
+        missingCount: { type: integer }
+        uniqueCount: { type: integer }
+        isSensitive: { type: boolean, description: Name suggests personal data. Masked in previews, never sent to AI, not usable in analysis. }
+    DatasetDetail:
+      allOf:
+        - $ref: "#/components/schemas/Dataset"
+        - type: object
+          properties:
+            columns: { type: array, items: { $ref: "#/components/schemas/DatasetColumn" } }
+    QualityReport:
+      type: object
+      properties:
+        rowCount: { type: integer }
+        columnCount: { type: integer }
+        duplicateRows: { type: integer }
+        malformedRows: { type: integer }
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              inferredType: { type: string }
+              missingCount: { type: integer }
+              missingPct: { type: number }
+              uniqueCount: { type: integer }
+              isSensitive: { type: boolean }
+              invalidValues: { type: integer }
+              outliers:
+                type: object
+                nullable: true
+                properties:
+                  count: { type: integer }
+                  lower: { type: number, nullable: true }
+                  upper: { type: number, nullable: true }
+              dateFormats: { type: object, nullable: true, additionalProperties: { type: integer } }
+              labelVariants: { type: array, nullable: true, items: { type: array, items: { type: string } } }
+        issues:
+          type: array
+          items:
+            type: object
+            properties:
+              severity: { type: string, enum: [info, warning, critical] }
+              code:
+                type: string
+                enum: [MALFORMED_ROWS, DUPLICATE_ROWS, HIGH_MISSINGNESS, MISSING_VALUES, INVALID_NUMERIC, POTENTIAL_OUTLIERS, INCONSISTENT_DATES, INCONSISTENT_LABELS, SENSITIVE_COLUMN, EMPTY_COLUMN]
+              column: { type: string }
+              message: { type: string }
+        recommendations: { type: array, items: { type: string } }
+        generatedAt: { type: string, format: date-time }
+    AnalysisType:
+      type: string
+      enum: [DESCRIPTIVE, INDEPENDENT_T_TEST, PAIRED_T_TEST, ONE_WAY_ANOVA, CHI_SQUARE, PEARSON_CORRELATION, SPEARMAN_CORRELATION, LINEAR_REGRESSION]
+    Analysis:
+      type: object
+      description: Only the metrics that apply to the selected method are present in `results`.
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [PENDING, PROCESSING, COMPLETED, FAILED] }
+        question: { type: string }
+        analysisType: { allOf: [{ $ref: "#/components/schemas/AnalysisType" }], nullable: true }
+        datasetId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        errorMessage: { type: string, description: Present only when status is FAILED }
+        methodology:
+          type: object
+          nullable: true
+          properties:
+            name: { type: string, example: "Welch's independent-samples t-test" }
+            analysisType: { $ref: "#/components/schemas/AnalysisType" }
+            variables:
+              type: object
+              properties:
+                outcome: { type: string }
+                group: { type: string }
+                predictor: { type: string }
+                pairedWith: { type: string }
+            alpha: { type: number, example: 0.05 }
+            missingDataHandling: { type: string }
+            excludedRows: { type: integer }
+            aiDisclosure:
+              type: object
+              properties:
+                provider: { type: string, example: Z.ai }
+                dataSent: { type: string }
+                note: { type: string }
+                rationale: { type: string, nullable: true }
+        results:
+          type: object
+          nullable: true
+          properties:
+            sampleSize: { type: object, additionalProperties: true }
+            testStatistic:
+              type: object
+              properties:
+                name: { type: string }
+                value: { type: number }
+            pValue: { type: number }
+            degreesOfFreedom:
+              oneOf:
+                - type: number
+                - type: object
+                  properties:
+                    between: { type: integer }
+                    within: { type: integer }
+            confidenceInterval:
+              type: object
+              nullable: true
+              properties:
+                level: { type: number }
+                lower: { type: number }
+                upper: { type: number }
+            effectSize:
+              type: object
+              properties:
+                name: { type: string }
+                value: { type: number }
+            meanDifference: { type: number }
+            groups: { type: array, items: { type: object, additionalProperties: true } }
+            contingencyTable: { type: object, additionalProperties: true }
+            coefficients: { type: object, additionalProperties: true }
+            rSquared: { type: number }
+            summary: { type: object, additionalProperties: true }
+            frequencies: { type: array, items: { type: object, additionalProperties: true } }
+        interpretation: { type: string, nullable: true }
+        assumptions: { type: array, items: { type: string } }
+        limitations: { type: array, items: { type: string } }
+        visualizationData:
+          type: object
+          nullable: true
+          description: |
+            One of:
+            histogram { variable, bins[{start,end,count}] };
+            bar { variable, categories[{label,count}] };
+            groupSummary { variable, groups[{group,sampleSize,mean,median,q1,q3,min,max,standardDeviation}] };
+            heatmap { rows[], columns[], observed[][] };
+            scatter { x, y, points[{x,y}] (max 500), fitLine? {slope,intercept,xMin,xMax} }.
+          properties:
+            type: { type: string, enum: [histogram, bar, groupSummary, heatmap, scatter] }
+    Report:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        analysisId: { type: string, format: uuid }
+        title: { type: string }
+        status: { type: string, enum: [PENDING, READY, FAILED] }
+        generatedById: { type: string, format: uuid }
+        createdAt: { type: string, format: date-time }
+        downloadPath: { type: string, nullable: true, example: /api/v1/reports/0d0c.../download }

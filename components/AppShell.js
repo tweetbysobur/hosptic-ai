@@ -7,6 +7,8 @@ import Workspace from "./Workspace";
 import { ConversationsPage, DatasetsPage, ReportsPage, ReportView } from "./Pages";
 import { loadConversations, saveConversations, loadReports, saveReports, uid, titleFrom, reportToMarkdown, downloadText } from "@/lib/store";
 import { liveAdapter } from "@/lib/workspace/live-adapter";
+import { useSession } from "./auth/SessionProvider";
+import { ROLE_LABELS } from "@/lib/auth/session";
 import DemoBanner from "./demo/DemoBanner";
 
 const DEFAULT_DATASETS = ["maternal"];
@@ -25,6 +27,11 @@ export default function AppShell({ adapter = liveAdapter }) {
   const [pending, setPending] = useState(null);
   const [error, setError] = useState(null);
   const inFlight = useRef(false);
+
+  const session = useSession();
+  const identity = adapter.mode === "live" && session
+    ? { name: session.organization.name, meta: ROLE_LABELS[session.role] || "Member" }
+    : adapter.identity;
 
   const storageKeys = adapter.storage;
 
@@ -175,7 +182,7 @@ export default function AppShell({ adapter = liveAdapter }) {
     <div className={`shell ${collapsed ? "collapsed" : ""} ${drawer ? "drawer-open" : ""}`}>
       <Sidebar
         mode={adapter.mode}
-        workspace={adapter.identity}
+        workspace={identity}
         view={sidebarView}
         collapsed={collapsed}
         onToggleCollapse={toggleCollapse}
