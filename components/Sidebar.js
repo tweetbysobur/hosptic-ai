@@ -1,7 +1,9 @@
 "use client";
 
-import { Plus, MessagesSquare, Database, FileText, PanelLeftClose, PanelLeftOpen, Lock, X } from "lucide-react";
+import { Plus, MessagesSquare, Database, FileText, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import Link from "next/link";
 import Logo from "./Logo";
+import SignOutButton from "./auth/SignOutButton";
 
 const NAV = [
   { id: "conversations", label: "Conversations", icon: MessagesSquare },
@@ -14,10 +16,10 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
   return (
     <aside className="sidebar" aria-label="Main navigation">
       <div className="sb-top">
-        <div className="sb-brand">
-          <Logo size={28} title="Hosptic AI" />
+        <Link href="/" className="sb-brand" title="Back to home">
+          <Logo size={26} title="Hosptic AI" />
           <div className="sb-brand-name hide-collapsed">Hosptic <span>AI</span></div>
-        </div>
+        </Link>
         <button className="icon-btn desktop-only" onClick={onToggleCollapse} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
           {collapsed ? <PanelLeftOpen size={17} strokeWidth={1.75} /> : <PanelLeftClose size={17} strokeWidth={1.75} />}
         </button>
@@ -26,11 +28,11 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
         </button>
       </div>
 
-      <div className="sb-org" title="Meridian General Hospital · Private workspace">
-        <div className="sb-org-avatar">MG</div>
+      <div className="sb-org" title="Hospital workspace · Demonstration data">
+        <div className="sb-org-avatar">HW</div>
         <div className="sb-org-text hide-collapsed">
-          <div className="sb-org-name">Meridian General Hospital</div>
-          <div className="sb-org-meta"><Lock size={11} strokeWidth={2} /> Private hospital workspace</div>
+          <div className="sb-org-name">Hospital workspace</div>
+          <div className="sb-org-meta">Demonstration data</div>
         </div>
       </div>
 
@@ -62,11 +64,11 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
       {collapsed && <div style={{ flex: 1 }} />}
 
       <div className="sb-foot">
-        <div className="sb-user-avatar">CR</div>
         <div className="sb-user hide-collapsed">
-          <div>Clinical Research Unit</div>
-          <div>Analyst access</div>
+          <div>Signed in</div>
+          <div>Hosptic workspace</div>
         </div>
+        <SignOutButton />
       </div>
     </aside>
   );
