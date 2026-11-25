@@ -1,0 +1,21 @@
+[Unit]
+Description=Hosptic AI frontend (Next.js)
+After=network.target hosptic-api.service
+
+[Service]
+Type=simple
+User=hosptic
+WorkingDirectory=/opt/hosptic
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# The frontend forwards /api/v1/* to this address. Keep it on localhost.
+Environment=HOSPTIC_API_URL=http://127.0.0.1:4000
+ExecStart=/opt/hosptic/node_modules/.bin/next start -H 127.0.0.1 -p 3000
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

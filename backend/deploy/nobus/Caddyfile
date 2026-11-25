@@ -1,8 +1,11 @@
-# Replace api.example.com with your API domain. Caddy gets and renews the HTTPS certificate itself.
-api.example.com {
+# Replace app.example.com with your domain. Caddy gets and renews the HTTPS certificate itself.
+# No domain yet? Use <ip-with-dashes>.sslip.io, e.g. 203-0-113-10.sslip.io.
+# The browser only talks to the Next.js frontend. It forwards /api/v1/* to the API on 127.0.0.1:4000,
+# so the API is never exposed to the internet.
+app.example.com {
 	encode gzip
 	request_body {
 		max_size 12MB
 	}
-	reverse_proxy 127.0.0.1:4000
+	reverse_proxy 127.0.0.1:3000
 }

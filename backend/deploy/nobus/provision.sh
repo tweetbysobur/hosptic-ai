@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# One-time setup for a fresh Ubuntu 22.04 server. Run as root: sudo bash provision.sh
-# Installs Node 20, PostgreSQL, Caddy. Creates the owner and restricted database roles.
+# One-time setup for a fresh Ubuntu 22.04 or 24.04 server. Run as root: sudo bash provision.sh
+# Installs Node 22, PostgreSQL, Caddy, and a swap file on small servers. Creates the owner and restricted database roles.
 # Not yet run on a Nobus server. Read it before you run it.
 set -euo pipefail
 
@@ -10,9 +10,15 @@ ENV_FILE=/etc/hosptic/backend.env
 apt-get update
 apt-get install -y curl ca-certificates gnupg postgresql postgresql-contrib debian-keyring debian-archive-keyring apt-transport-https git ufw
 
-# Node.js 20
-if ! command -v node >/dev/null || [ "$(node -v | cut -d. -f1 | tr -d v)" -lt 20 ]; then
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+# Swap: the Next.js build and TensorFlow need more memory than a 2 GB server has.
+if [ "$(swapon --show | wc -l)" -eq 0 ] && [ "$(awk '/MemTotal/ {print $2}' /proc/meminfo)" -lt 4000000 ]; then
+  fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+  grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
+# Node.js 22 (Node 20 reached end of life in April 2026)
+if ! command -v node >/dev/null || [ "$(node -v | cut -d. -f1 | tr -d v)" -lt 22 ]; then
+  curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
   apt-get install -y nodejs
 fi
 
@@ -66,4 +72,4 @@ ufw allow 80/tcp
 ufw allow 443/tcp
 ufw --force enable
 
-echo "Next: put the code in $APP_DIR, run deploy/nobus/DEPLOY.md steps 3 onward."
+echo "Done. Next: DEPLOY.md step 4 (edit $ENV_FILE)."
