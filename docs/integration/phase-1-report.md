@@ -74,3 +74,37 @@ Probed against the running backend (not assumed):
 - Proxy and large or long requests. Multipart uploads and AI analysis hold the request open. Streaming and timeouts must be tested in Phase 2.
 - Demo isolation. Demo code must never import the API client. Tests will enforce this.
 - Existing mock routes under `/api/datasets` and `/api/analyze` remain live until Phase 2. The live workspace therefore still shows synthetic data until then.
+
+## 7. Phase 1 results
+
+Environment: backend `f62687b` running locally on PostgreSQL 16 with migrations and the restricted `hosptic_app` role. The backend's own suite passes (87 of 87).
+
+| Check | Result |
+| --- | --- |
+| Unit tests (`npm test`) | 64 of 64 pass |
+| Live browser suite (`tests/e2e/live-auth.mjs`) | 24 of 24 pass |
+| Organisation isolation (`tests/e2e/organisation-isolation.mjs`) | 3 of 3 pass |
+| Demo suite (earlier, unchanged behaviour) | 32 of 32 pass |
+| Production build | Exit 0 |
+| Layout at 1280, 820 and 390 px | No horizontal overflow, no page errors |
+
+Covered against the real backend: registration (with organisation), sign-in, wrong password, duplicate email, client validation before any request, double-submit protection, HTTP-only cookies, session restoration after reload, transparent refresh after the access token is removed, sign-out, sign-out without a CSRF token, unconfigured and unreachable backend states, and separate sessions for two organisations.
+
+Not yet covered: organisation read beyond `/organization`, multiple-organisation sign-in, member management, and any dataset or analysis endpoint (Phase 2).
+
+## 8. Changes from the plan in section 5
+
+- The frontend's own `/api/auth/*` routes were removed. The browser calls `/api/v1/*` on the same origin, and a route handler at `app/api/v1/[...path]` forwards the request to `HOSPTIC_API_URL`. Only plain path segments are forwarded.
+- Organisation creation moved into registration. The onboarding page and the join-by-code form were removed because the backend has no equivalent.
+- Protected-route checks run in the browser through `SessionGate`, because the `/api`-scoped access cookie cannot be read by the server.
+- Password minimum raised to 10 characters, as the backend requires.
+
+## 9. Outstanding blockers
+
+1. Confirm the deployment topology: same-origin proxy with `HOSPTIC_API_URL` on the server.
+2. Logout does not revoke the access token. It stays valid for up to 15 minutes. Confirm this is accepted, or ask for server-side revocation.
+3. Confirm the complete error code list, especially suspended members, rate limits (429) and refresh failures.
+4. Multi-organisation sign-in has no picker in the UI yet.
+5. Conversations: the backend has no thread resource. Confirm whether chat threads stay client-side.
+6. Analysis method mapping and the AI-disabled response (Phase 2).
+7. The `test:e2e` browser suite needs Playwright, which is not a project dependency.
