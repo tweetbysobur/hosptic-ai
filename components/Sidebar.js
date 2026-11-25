@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, MessagesSquare, Database, FileText, PanelLeftClose, PanelLeftOpen, Lock, X } from "lucide-react";
+import Link from "next/link";
 import Logo from "./Logo";
 
 const NAV = [
@@ -14,10 +15,10 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
   return (
     <aside className="sidebar" aria-label="Main navigation">
       <div className="sb-top">
-        <div className="sb-brand">
-          <Logo size={28} title="Hosptic AI" />
+        <Link href="/" className="sb-brand" title="Back to home">
+          <Logo size={26} title="Hosptic AI" />
           <div className="sb-brand-name hide-collapsed">Hosptic <span>AI</span></div>
-        </div>
+        </Link>
         <button className="icon-btn desktop-only" onClick={onToggleCollapse} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
           {collapsed ? <PanelLeftOpen size={17} strokeWidth={1.75} /> : <PanelLeftClose size={17} strokeWidth={1.75} />}
         </button>

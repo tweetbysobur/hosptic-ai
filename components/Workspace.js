@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, Plus, X, Check, Variable, Pencil, Trash2, BarChart3, TrendingUp, Search, GitCompareArrows, ScatterChart, RotateCcw } from "lucide-react";
+import { ArrowUp, Plus, X, Check, Variable, Pencil, Trash2, ChartNoAxesColumn, TrendingUp, Search, GitCompareArrows, ChartScatter, RotateCcw } from "lucide-react";
 import Response from "./Response";
 import Logo from "./Logo";
 
@@ -10,11 +10,11 @@ const STARTERS = {
     { kind: "Compare", icon: GitCompareArrows, q: "Compare maternal complication rates across the four quarters" },
     { kind: "Trend", icon: TrendingUp, q: "Show the monthly trend in maternal complications" },
     { kind: "Drivers", icon: Search, q: "Identify variables associated with complications" },
-    { kind: "Relationship", icon: ScatterChart, q: "Is there a relationship between haemoglobin and birth weight?" },
+    { kind: "Relationship", icon: ChartScatter, q: "Is there a relationship between haemoglobin and birth weight?" },
   ],
   admissions: [
     { kind: "Compare", icon: GitCompareArrows, q: "Compare readmission rates by department" },
-    { kind: "Distribution", icon: BarChart3, q: "Show the distribution of length of stay" },
+    { kind: "Distribution", icon: ChartNoAxesColumn, q: "Show the distribution of length of stay" },
     { kind: "Trend", icon: TrendingUp, q: "Show the monthly trend in length of stay" },
     { kind: "Drivers", icon: Search, q: "Which factors are associated with readmissions?" },
   ],
@@ -22,7 +22,7 @@ const STARTERS = {
 
 const TYPE_SHORT = { numeric: "123", binary: "y/n", categorical: "abc", date: "date" };
 
-export default function Workspace({ conversation, datasets, selectedDatasets, onDatasetsChange, onAsk, pending, error, onRetry, onRename, onDelete, onOpenReport, onDownloadReport, ready }) {
+export default function Workspace({ conversation, datasets, selectedDatasets, onDatasetsChange, onAsk, pending, error, onRetry, onRename, onDelete, onOpenReport, onDownloadReport, ready, preview = false }) {
   const [text, setText] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [varsOpen, setVarsOpen] = useState(false);
@@ -43,9 +43,10 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
   }, [text]);
 
   useEffect(() => {
+    if (preview) return;
     const el = threadRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [messages.length, pending]);
+  }, [messages.length, pending, preview]);
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -56,7 +57,7 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
 
   const submit = (q) => {
     const value = (q ?? text).trim();
-    if (!value || pending) return;
+    if (preview || !value || pending) return;
     if (!selectedDatasets.length) { setPickerOpen(true); return; }
     onAsk(value);
     if (q === undefined) setText("");
@@ -107,7 +108,8 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); }
           }}
-          autoFocus
+          autoFocus={!preview}
+          readOnly={preview}
         />
         <div className="composer-bar">
           {selectedDatasets.map((id) => (
@@ -122,7 +124,7 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
           <button className="btn ghost" style={{ height: 28, fontSize: 12.5 }} onClick={() => setVarsOpen((o) => !o)} aria-pressed={varsOpen}>
             <Variable size={14} /> Variables
           </button>
-          <button className="send" onClick={() => submit()} disabled={!text.trim() || !!pending} aria-label="Send question">
+          <button className="send" onClick={() => submit()} disabled={preview || !text.trim() || !!pending} aria-label="Send question">
             <ArrowUp size={17} strokeWidth={2.25} />
           </button>
         </div>
