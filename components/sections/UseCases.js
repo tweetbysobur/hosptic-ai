@@ -9,8 +9,8 @@ export default function UseCases() {
       <SectionIntro id="solutions-title" eyebrow={USE_CASES.eyebrow} title={USE_CASES.title} />
       <div className="mt-14 grid gap-5 sm:grid-cols-2">
         {USE_CASES.items.map((u) => (
-          <article key={u.title} className="flex gap-5 rounded-2xl border border-line bg-surface p-7 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-primary/40">
-            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-blush text-rose">
+          <article key={u.title} className="flex gap-5 rounded-2xl border border-line bg-surface p-7 shadow-card transition duration-300 hover:border-primary/40">
+            <span className="inline-flex shrink-0 text-rose">
               <Icon name={u.icon} size={22} />
             </span>
             <div>

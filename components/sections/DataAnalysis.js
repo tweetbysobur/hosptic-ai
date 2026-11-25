@@ -11,7 +11,7 @@ export default function DataAnalysis() {
         <ul className="grid gap-4 sm:grid-cols-2">
           {DATA_ANALYSIS.items.map((f) => (
             <li key={f.title} className="rounded-2xl border border-line bg-canvas p-6 transition duration-300 hover:border-primary/40 hover:bg-surface">
-              <span className="grid size-10 place-items-center rounded-lg bg-surface text-rose shadow-card">
+              <span className="inline-flex text-rose">
                 <Icon name={f.icon} size={18} />
               </span>
               <h3 className="mt-5 text-[17px] font-bold text-ink">{f.title}</h3>

@@ -14,7 +14,7 @@ export default function Privacy() {
         <ul className="grid gap-4 sm:grid-cols-2">
           {PRIVACY.items.map((p) => (
             <li key={p.title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition duration-300 hover:border-primary/50 hover:bg-white/[0.07]">
-              <span className="grid size-10 place-items-center rounded-lg bg-primary/15 text-primary">
+              <span className="inline-flex text-primary">
                 <Icon name={p.icon} size={18} />
               </span>
               <h3 className="mt-5 text-[17px] font-bold text-white">{p.title}</h3>
