@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ORGANIZATION_ADMIN
+  RESEARCHER
+  ANALYST
+  VIEWER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum DatasetStatus {
+  PROCESSING
+  READY
+  FAILED
+  DELETED
+}
+
+enum ColumnType {
+  NUMERIC
+  CATEGORICAL
+  DATE
+  BOOLEAN
+  TEXT
+  EMPTY
+}
+
+enum AnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ReportStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  datasets    Dataset[]
+  analyses    Analysis[]
+  reports     Report[]
+  auditLogs   AuditLog[]
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  fullName     String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships   Membership[]
+  refreshTokens RefreshToken[]
+  datasets      Dataset[]      @relation("DatasetUploader")
+  analyses      Analysis[]
+  reports       Report[]       @relation("ReportGenerator")
+}
+
+model Membership {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  userId         String           @db.Uuid
+  role           Role
+  status         MembershipStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId, role])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Dataset {
+  id               String        @id @default(uuid()) @db.Uuid
+  organizationId   String        @db.Uuid
+  uploadedById     String        @db.Uuid
+  name             String
+  description      String?
+  originalFileName String
+  storageKey       String
+  fileType         String
+  fileSize         Int
+  rowCount         Int           @default(0)
+  columnCount      Int           @default(0)
+  status           DatasetStatus @default(PROCESSING)
+  qualityReport    Json?
+  deletedAt        DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  uploadedBy   User            @relation("DatasetUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+  columns      DatasetColumn[]
+  analyses     Analysis[]
+
+  @@index([organizationId, status, createdAt])
+}
+
+model DatasetColumn {
+  id             String     @id @default(uuid()) @db.Uuid
+  organizationId String     @db.Uuid
+  datasetId      String     @db.Uuid
+  position       Int
+  columnName     String
+  inferredType   ColumnType
+  missingCount   Int        @default(0)
+  uniqueCount    Int        @default(0)
+  isSensitive    Boolean    @default(false)
+  metadata       Json?
+
+  dataset Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+  @@unique([datasetId, columnName])
+  @@index([organizationId, datasetId])
+}
+
+model Analysis {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  datasetId      String         @db.Uuid
+  userId         String         @db.Uuid
+  question       String
+  analysisType   String?
+  status         AnalysisStatus @default(PENDING)
+  errorMessage   String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  dataset      Dataset         @relation(fields: [datasetId], references: [id], onDelete: Restrict)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  result       AnalysisResult?
+  reports      Report[]
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, datasetId])
+}
+
+model AnalysisResult {
+  id                 String   @id @default(uuid()) @db.Uuid
+  organizationId     String   @db.Uuid
+  analysisId         String   @unique @db.Uuid
+  methodology        Json
+  statisticalResults Json
+  interpretation     String?
+  visualizationData  Json?
+  assumptions        Json
+  limitations        Json
+  createdAt          DateTime @default(now())
+
+  analysis Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+model Report {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  analysisId     String       @db.Uuid
+  generatedById  String       @db.Uuid
+  title          String
+  storageKey     String?
+  status         ReportStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  analysis     Analysis     @relation(fields: [analysisId], references: [id], onDelete: Restrict)
+  generatedBy  User         @relation("ReportGenerator", fields: [generatedById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, createdAt])
+}
+
+model AuditLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  userId         String?  @db.Uuid
+  action         String
+  resourceType   String
+  resourceId     String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, resourceType, resourceId])
+}
