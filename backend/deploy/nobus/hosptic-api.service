@@ -1,0 +1,23 @@
+[Unit]
+Description=Hosptic AI API
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=hosptic
+WorkingDirectory=/opt/hosptic/backend
+EnvironmentFile=/etc/hosptic/backend.env
+Environment=NODE_ENV=production
+ExecStartPre=/opt/hosptic/backend/node_modules/.bin/prisma migrate deploy
+ExecStart=/usr/bin/node src/server.js
+Restart=on-failure
+RestartSec=5
+# Basic hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/hosptic
+
+[Install]
+WantedBy=multi-user.target
