@@ -30,8 +30,8 @@ export default function SiteHeader() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
-          <Button href="/app" variant="ghost" size="sm" title="Sign-in is not yet available. Opens the demo workspace.">Sign In</Button>
-          <Button href="/app" variant="primary" size="sm">Get Started</Button>
+          <Button href="/login" variant="ghost" size="sm">Sign In</Button>
+          <Button href="/register" variant="primary" size="sm">Get Started</Button>
         </div>
 
         <button
@@ -55,8 +55,8 @@ export default function SiteHeader() {
               </a>
             ))}
             <div className="mt-3 grid grid-cols-2 gap-3">
-              <Button href="/app" variant="secondary" size="sm" className="h-11">Sign In</Button>
-              <Button href="/app" variant="primary" size="sm" className="h-11">Get Started</Button>
+              <Button href="/login" variant="secondary" size="sm" className="h-11">Sign In</Button>
+              <Button href="/register" variant="primary" size="sm" className="h-11">Get Started</Button>
             </div>
           </nav>
         </div>
