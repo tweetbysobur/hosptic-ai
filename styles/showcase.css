@@ -49,3 +49,92 @@
     margin-left: auto;
   }
 }
+
+/* ---------------------------------------------------------------- dashboard refinements */
+
+/* Answer hierarchy: the finding leads, supporting layers step down. */
+.resp { gap: 22px; }
+.resp-meta { gap: 6px; }
+.resp-headline { font-size: 27px; font-weight: 700; line-height: 1.22; letter-spacing: -0.022em; }
+.resp-explain { font-size: 15.5px; color: var(--ink); gap: 10px; }
+.layer-heading { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
+.interp li::before { background: var(--brand); width: 5px; height: 5px; top: 10px; }
+@media (max-width: 640px) { .resp-headline { font-size: 22px; } }
+
+/* Table highlight: one accent, the bar. */
+table.data tr.hl td { background: transparent; }
+table.data tr.hl td:first-child { box-shadow: inset 3px 0 0 var(--brand); font-weight: 600; }
+
+/* Technical details: lighter key-value list. */
+.tech-grid { border: 0; border-radius: 0; }
+.tech-grid dt { background: transparent; color: var(--ink-2); padding-left: 0; }
+.tech-grid dt, .tech-grid dd { border-bottom: 1px solid var(--border); }
+
+/* Disabled send reads as disabled, not decorative. */
+.send:disabled { opacity: 1; background: var(--sunken); color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--border); }
+
+/* Sidebar: recent analyses separated by a rule instead of a label. */
+.sb-recent { border-top: 1px solid var(--border); margin: 10px 12px 0; padding: 8px 0 12px; }
+.sb-recent .sb-item { padding-left: 8px; padding-right: 8px; }
+
+/* Buttons */
+.btn-lg { height: 42px; padding: 0 18px; font-size: 14px; border-radius: 10px; }
+.btn.danger-solid { background: var(--ink); color: #fff; border-color: var(--ink); font-weight: 600; }
+.btn.danger-solid:hover { background: #3a4150; }
+
+/* Composer on narrow screens: one row of controls. */
+.ds-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+@media (max-width: 640px) {
+  .hide-sm { display: none; }
+  .composer-wrap { padding: 0 12px 12px; }
+  .composer textarea { padding: 12px 14px 4px; }
+  .composer-bar { flex-wrap: nowrap; gap: 6px; }
+  .ds-chip-name { max-width: 34vw; }
+  .demo-banner { padding: 8px 12px; gap: 8px; flex-wrap: nowrap; }
+  .demo-banner-text { font-size: 12.5px; }
+  .demo-banner-actions { flex-wrap: nowrap; }
+  .demo-banner .btn { height: 28px; padding: 0 10px; font-size: 12px; }
+}
+
+/* Modal */
+.modal-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(37, 42, 52, 0.38); display: grid; place-items: center; padding: 16px; animation: fade 160ms; }
+.modal { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-pop); padding: 24px; }
+.modal-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+.modal-body { margin-top: 8px; color: var(--ink-2); font-size: 14.5px; line-height: 1.55; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+.field-label { display: block; margin-top: 16px; font-size: 13.5px; font-weight: 600; }
+.field-label span { color: var(--ink-2); font-weight: 400; }
+.field-input { margin-top: 6px; width: 100%; height: 40px; border: 1px solid var(--border-strong); border-radius: 10px; padding: 0 12px; background: var(--surface); }
+.field-input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.field-error { margin-top: 12px; color: var(--brand-ink); font-size: 13.5px; font-weight: 500; }
+.upload-drop { position: relative; margin-top: 18px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 22px 16px; border: 1.5px dashed var(--border-strong); border-radius: 12px; background: var(--bg); cursor: pointer; text-align: center; }
+.upload-drop:hover, .upload-drop:focus-within { border-color: var(--brand); }
+.upload-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.upload-drop-title { font-weight: 600; font-size: 14.5px; overflow-wrap: anywhere; }
+.upload-drop-meta { color: var(--ink-2); font-size: 13px; }
+.upload-issues { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; color: var(--ink-2); }
+.upload-issues li { padding-left: 14px; position: relative; }
+.upload-issues li::before { content: ""; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); }
+.upload-issues li[data-severity="critical"]::before, .upload-issues li[data-severity="warning"]::before { background: var(--brand); }
+
+/* Live workspace home */
+.live-inner { min-height: 100%; display: flex; align-items: center; }
+.live-empty { max-width: 720px; width: 100%; padding: 24px 0; }
+.live-empty h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+.live-empty .lead { margin-top: 12px; color: var(--ink-2); font-size: 16px; max-width: 56ch; }
+.live-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 26px; }
+.live-note { color: var(--ink-2); font-size: 14px; max-width: 46ch; }
+.live-steps { list-style: none; padding: 0; margin: 44px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.live-steps li { border-top: 2px solid var(--brand); padding-top: 16px; }
+.live-steps li:last-child { border-top-color: var(--border-strong); }
+.live-steps h2 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.live-steps p { margin-top: 6px; color: var(--ink-2); font-size: 14px; line-height: 1.55; }
+.soon { font-size: 11.5px; font-weight: 600; color: var(--ink-2); border: 1px solid var(--border-strong); border-radius: 99px; padding: 1px 8px; }
+.live-state { padding: 48px 0; color: var(--ink-2); }
+.status-dot { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.status-dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+.status-dot.failed::before { background: var(--brand); }
+@media (max-width: 760px) {
+  .live-steps { grid-template-columns: 1fr; gap: 18px; margin-top: 32px; }
+  .live-empty h1 { font-size: 26px; }
+}

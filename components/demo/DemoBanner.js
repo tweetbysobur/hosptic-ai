@@ -9,11 +9,11 @@ export default function DemoBanner({ onReset }) {
     <div className="demo-banner" role="region" aria-label="Demo mode">
       <p className="demo-banner-text">
         <span className="demo-banner-dot" aria-hidden="true" />
-        <strong>Demo mode.</strong> Synthetic data only. Nothing here connects to a hospital system or a real patient record.
+        <span><strong>Demo mode.</strong> Synthetic data only.<span className="hide-sm"> Nothing here connects to a hospital system or a real patient record.</span></span>
       </p>
       <div className="demo-banner-actions">
         <button type="button" className="btn" onClick={onReset}>Reset demo</button>
-        <Link href="/login" className="btn">Sign in with your organisation</Link>
+        <Link href="/login" className="btn"><span>Sign in<span className="hide-sm"> with your organisation</span></span></Link>
       </div>
     </div>
   );

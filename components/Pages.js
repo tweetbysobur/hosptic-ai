@@ -4,8 +4,11 @@ import { useState } from "react";
 import { Pencil, Trash2, Download, ArrowLeft, Printer, Plus, MessagesSquare } from "lucide-react";
 import { relativeTime } from "@/lib/store";
 import { Evidence, Technical } from "./Response";
+import { useConfirm } from "./ui/ConfirmDialog";
+import { plural } from "@/lib/format";
 
 export function ConversationsPage({ conversations, onOpen, onRename, onDelete, onNew }) {
+  const confirm = useConfirm();
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState(null);
   const [draft, setDraft] = useState("");
@@ -41,12 +44,12 @@ export function ConversationsPage({ conversations, onOpen, onRename, onDelete, o
                 ) : (
                   <button className="row-main" onClick={() => onOpen(c.id)}>
                     <div className="row-title">{c.title}</div>
-                    <div className="row-meta">{n} {n === 1 ? "analysis" : "analyses"} · {relativeTime(c.updatedAt)}</div>
+                    <div className="row-meta">{plural(n, "analysis", "analyses")} · {relativeTime(c.updatedAt)}</div>
                   </button>
                 )}
                 <div className="row-actions">
                   <button className="icon-btn" onClick={() => { setEditing(c.id); setDraft(c.title); }} aria-label={`Rename ${c.title}`} title="Rename"><Pencil size={15} strokeWidth={1.75} /></button>
-                  <button className="icon-btn" onClick={() => { if (window.confirm(`Delete "${c.title}"? This can't be undone.`)) onDelete(c.id); }} aria-label={`Delete ${c.title}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
+                  <button className="icon-btn" onClick={async () => { if (await confirm({ title: "Delete this conversation?", body: `“${c.title}” and its analyses are removed from this device. This cannot be undone.`, confirmLabel: "Delete", tone: "danger" })) onDelete(c.id); }} aria-label={`Delete ${c.title}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
                 </div>
               </div>
             );
@@ -98,6 +101,7 @@ export function DatasetsPage({ datasets, onAnalyse }) {
 }
 
 export function ReportsPage({ reports, conversations, onOpen, onDownload, onDelete }) {
+  const confirm = useConfirm();
   return (
     <div className="page">
       <div className="page-inner">
@@ -115,11 +119,11 @@ export function ReportsPage({ reports, conversations, onOpen, onDownload, onDele
               <div className="row" key={r.id}>
                 <button className="row-main" onClick={() => onOpen(r)}>
                   <div className="row-title">{r.title}</div>
-                  <div className="row-meta">{r.sections.length} sections · {r.dataset} · {relativeTime(r.created)}{conv ? ` · from “${conv.title}”` : ""}</div>
+                  <div className="row-meta">{plural(r.sections.length, "section", "sections")} · {r.dataset} · {relativeTime(r.created)}{conv ? ` · from “${conv.title}”` : ""}</div>
                 </button>
                 <div className="row-actions">
                   <button className="icon-btn" onClick={() => onDownload(r)} aria-label={`Download ${r.title}`} title="Download"><Download size={15} strokeWidth={1.75} /></button>
-                  <button className="icon-btn" onClick={() => { if (window.confirm("Delete this report? This can't be undone.")) onDelete(r.id); }} aria-label={`Delete ${r.title}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
+                  <button className="icon-btn" onClick={async () => { if (await confirm({ title: "Delete this report?", body: "The report is removed from this device. This cannot be undone.", confirmLabel: "Delete", tone: "danger" })) onDelete(r.id); }} aria-label={`Delete ${r.title}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
                 </div>
               </div>
             );
@@ -141,7 +145,6 @@ export function ReportView({ report, onBack, onDownload, onOpenConversation, con
         <button className="btn primary" onClick={() => onDownload(report)}><Download size={14} /> Download</button>
       </div>
       <article className="doc">
-        <div className="doc-eyebrow">Hosptic analysis report</div>
         <h1>{report.title}</h1>
         <div className="doc-meta">
           {report.dataset} · Generated {new Date(report.created).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}

@@ -3,7 +3,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp, Plus, X, Check, Variable, Pencil, Trash2, ChartNoAxesColumn, TrendingUp, Search, GitCompareArrows, ChartScatter, RotateCcw } from "lucide-react";
 import Response from "./Response";
-import Logo from "./Logo";
+import { useConfirm } from "./ui/ConfirmDialog";
+import { titleFrom } from "@/lib/store";
 
 const STARTERS = {
   maternal: [
@@ -23,6 +24,7 @@ const STARTERS = {
 const TYPE_SHORT = { numeric: "123", binary: "y/n", categorical: "abc", date: "date" };
 
 export default function Workspace({ conversation, datasets, selectedDatasets, onDatasetsChange, onAsk, pending, error, onRetry, onRename, onDelete, onOpenReport, onDownloadReport, ready, preview = false }) {
+  const confirm = useConfirm();
   const [text, setText] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [varsOpen, setVarsOpen] = useState(false);
@@ -81,7 +83,7 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
       <div className="composer" ref={pickerRef}>
         {pickerOpen && (
           <div className="popover" role="dialog" aria-label="Choose datasets">
-            <div className="popover-label">Datasets to analyse</div>
+            <div className="popover-label">Choose datasets</div>
             {datasets.map((d) => {
               const on = selectedDatasets.includes(d.id);
               return (
@@ -114,7 +116,7 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
         <div className="composer-bar">
           {selectedDatasets.map((id) => (
             <span className="ds-chip" key={id}>
-              {dsById[id]?.name || id}
+              <span className="ds-chip-name">{dsById[id]?.name || id}</span>
               <button onClick={() => toggleDataset(id)} aria-label={`Remove ${dsById[id]?.name || id}`}><X size={12} /></button>
             </span>
           ))}
@@ -122,14 +124,13 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
             <Plus size={13} /> {selectedDatasets.length ? "Dataset" : "Choose a dataset"}
           </button>
           <button className="btn ghost" style={{ height: 28, fontSize: 12.5 }} onClick={() => setVarsOpen((o) => !o)} aria-pressed={varsOpen}>
-            <Variable size={14} /> Variables
+            <Variable size={14} /> <span className="hide-sm">Variables</span>
           </button>
           <button className="send" onClick={() => submit()} disabled={preview || !text.trim() || !!pending} aria-label="Send question">
             <ArrowUp size={17} strokeWidth={2.25} />
           </button>
         </div>
       </div>
-      <div className="composer-hint">Results are computed from the selected datasets. Associations shown do not establish cause.</div>
     </div>
   );
 
@@ -157,7 +158,7 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
             </div>
             <div className="ws-actions">
               <button className="icon-btn" onClick={() => { setTitleDraft(conversation.title); setEditing(true); }} aria-label="Rename conversation" title="Rename"><Pencil size={15} strokeWidth={1.75} /></button>
-              <button className="icon-btn" onClick={() => { if (window.confirm("Delete this conversation? This can't be undone.")) onDelete(); }} aria-label="Delete conversation" title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
+              <button className="icon-btn" onClick={async () => { if (await confirm({ title: "Delete this conversation?", body: "Its analyses are removed from this device. This cannot be undone.", confirmLabel: "Delete", tone: "danger" })) onDelete(); }} aria-label="Delete conversation" title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
             </div>
           </header>
         )}
@@ -165,7 +166,6 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
         {messages.length === 0 && !pending ? (
           <div className="empty">
             <div className="empty-inner">
-              <Logo className="empty-mark" />
               <h1>What would you like to understand from your data?</h1>
               <p className="lead">
                 Ask in plain language. Hosptic runs the analysis, explains what it found and shows the evidence, with full statistical detail when you need it.
@@ -183,8 +183,10 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
         ) : (
           <div className="thread" ref={threadRef}>
             <div className="thread-inner">
-              {messages.map((m) =>
+              {messages.map((m, i) =>
                 m.role === "user" ? (
+                  // The first question is already the conversation title in the header.
+                  i === 0 && conversation && titleFrom(m.text) === conversation.title ? null :
                   <div className="msg-user" key={m.id}>{m.text}</div>
                 ) : (
                   <Response key={m.id} response={m.response} onAsk={(q) => submit(q)} onOpenReport={onOpenReport} onDownloadReport={onDownloadReport} />

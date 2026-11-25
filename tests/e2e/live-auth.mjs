@@ -78,6 +78,36 @@ try {
   check("workspace shows the real organisation name", (await page.textContent(".sb-org-name")) === ORG);
   check("workspace shows the administrator role", (await page.textContent(".sb-org-meta")).includes("Administrator"));
 
+  // Honest empty workspace: upload-first, and no sample data presented as the hospital's own.
+  await page.waitForSelector(".live-empty", { timeout: 15000 });
+  check("empty workspace leads with upload", (await page.textContent(".live-empty h1")).includes("first dataset") && (await page.$$("text=Upload dataset")).length >= 1);
+  const appText = await page.innerText("body");
+  check("no synthetic dataset names in the signed-in workspace", !/Maternal Outcomes|Hospital Admissions 2025|Demo workspace/.test(appText));
+  check("workspace avatar uses organisation initials", (await page.textContent(".sb-org-avatar")).trim() === "EH");
+
+  // Upload a real CSV through the dialog; the backend profiles it.
+  const rows = ["age,ward,length_of_stay,readmitted"];
+  for (let i = 0; i < 40; i++) rows.push(`${30 + (i % 40)},${["A", "B", "C"][i % 3]},${2 + (i % 9)},${i % 5 === 0 ? "yes" : "no"}`);
+  await page.click("text=Upload dataset");
+  await page.waitForSelector(".modal");
+  await page.setInputFiles(".modal input[type=file]", { name: "ward-stays.csv", mimeType: "text/csv", buffer: Buffer.from(rows.join("\n")) });
+  await page.click(".modal button[type=submit]");
+  await page.waitForSelector(".modal-title:has-text('is ready')", { timeout: 30000 });
+  const uploadSummary = await page.textContent(".modal-body");
+  check("upload confirms rows and columns from the backend", uploadSummary.includes("40 rows") && uploadSummary.includes("4 columns"), uploadSummary);
+  await page.click(".modal button:has-text('Done')");
+  await page.waitForSelector(".row-title", { timeout: 15000 });
+  check("uploaded dataset appears in the workspace list", (await page.textContent(".row-title")) === "ward-stays");
+
+  // Wrong file type is caught before upload
+  apiRequests.length = 0;
+  await page.click("text=Upload dataset");
+  await page.setInputFiles(".modal input[type=file]", { name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });
+  await page.click(".modal button[type=submit]");
+  await page.waitForSelector(".modal .field-error");
+  check("unsupported file type is rejected without a request", apiRequests.filter((r) => r.includes("/datasets/upload")).length === 0);
+  await page.click(".modal button:has-text('Cancel')");
+
   const cookies = await ctx.cookies();
   const access = cookies.find((c) => c.name === "access_token");
   const refresh = cookies.find((c) => c.name === "refresh_token");

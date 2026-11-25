@@ -1,8 +1,8 @@
 "use client";
 
-import { ChevronDown, FlaskConical, ArrowUpRight, FileText, Download } from "lucide-react";
+import { ChevronDown, FlaskConical, FileText, Download } from "lucide-react";
 import Chart from "./Chart";
-import Logo from "./Logo";
+import { plural } from "@/lib/format";
 
 export function Evidence({ items }) {
   if (!items || !items.length) return null;
@@ -92,8 +92,6 @@ export default function Response({ response, onAsk, onOpenReport, onDownloadRepo
   return (
     <article className="resp" aria-label="Analysis">
       <div className="resp-meta">
-        <Logo className="mark" />
-        <span>Hosptic</span>
         {r.dataset && <span className="ds">{r.dataset.name}</span>}
       </div>
 
@@ -110,7 +108,7 @@ export default function Response({ response, onAsk, onOpenReport, onDownloadRepo
           <div className="doc-icon"><FileText size={20} strokeWidth={1.5} /></div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="report-title">{r.report.title}</div>
-            <div className="report-meta">{r.report.sections.length} sections · {r.report.dataset}</div>
+            <div className="report-meta">{plural(r.report.sections.length, "section", "sections")} · {r.report.dataset}</div>
           </div>
           <button className="btn" onClick={() => onDownloadReport?.(r.report)}><Download size={14} /> Download</button>
           <button className="btn primary" onClick={() => onOpenReport?.(r.report)}>Open</button>
@@ -120,7 +118,6 @@ export default function Response({ response, onAsk, onOpenReport, onDownloadRepo
       {/* Layer 3: supporting evidence */}
       {r.evidence?.length > 0 && (
         <section>
-          <div className="layer-label">Evidence</div>
           <Evidence items={r.evidence} />
         </section>
       )}
@@ -128,7 +125,7 @@ export default function Response({ response, onAsk, onOpenReport, onDownloadRepo
       {/* Layer 4: interpretation */}
       {r.interpretation?.length > 0 && (
         <section>
-          <div className="layer-label">What this means</div>
+          <h3 className="layer-heading">What this means</h3>
           <ul className="interp">{r.interpretation.map((t) => <li key={t}>{t}</li>)}</ul>
         </section>
       )}
@@ -139,11 +136,11 @@ export default function Response({ response, onAsk, onOpenReport, onDownloadRepo
       {/* Layer 6: follow-up suggestions */}
       {r.followUps?.length > 0 && (
         <section>
-          <div className="layer-label">Explore next</div>
+          <h3 className="layer-heading">Ask next</h3>
           <div className="followups">
             {r.followUps.map((f) => (
               <button key={f} className="chip" onClick={() => onAsk(f)}>
-                {f} <ArrowUpRight size={13} strokeWidth={1.75} />
+                {f}
               </button>
             ))}
           </div>

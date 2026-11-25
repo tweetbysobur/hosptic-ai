@@ -5,6 +5,8 @@ import Link from "next/link";
 import Logo from "./Logo";
 import SignOutButton from "./auth/SignOutButton";
 import Icon from "./ui/Icon";
+import { useEffect, useState } from "react";
+import { initialsFrom } from "@/lib/format";
 
 const NAV = [
   { id: "conversations", label: "Conversations", icon: MessagesSquare },
@@ -12,8 +14,13 @@ const NAV = [
   { id: "reports", label: "Reports", icon: FileText },
 ];
 
-export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate, onNew, conversations, activeId, onOpenConversation, counts, onCloseDrawer, mode = "preview", workspace = { name: "Hospital workspace", meta: "Demonstration data" } }) {
-  const recent = conversations.slice(0, 20);
+export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate, onNew, conversations, activeId, onOpenConversation, counts, onCloseDrawer, mode = "preview", canAnalyse = true, workspace = { name: "Hospital workspace", meta: "Demonstration data" } }) {
+  const recent = conversations.slice(0, 12);
+  // The shortcut label is set after mount so server and client render the same text.
+  const [shortcut, setShortcut] = useState("Ctrl K");
+  useEffect(() => {
+    if (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) setShortcut("⌘K");
+  }, []);
   return (
     <aside className="sidebar" aria-label="Main navigation">
       <div className="sb-top">
@@ -30,32 +37,30 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
       </div>
 
       <div className="sb-org" title={`${workspace.name} · ${workspace.meta}`}>
-        <div className="sb-org-avatar">HW</div>
+        <div className="sb-org-avatar" aria-hidden="true">{initialsFrom(workspace.name)}</div>
         <div className="sb-org-text hide-collapsed">
           <div className="sb-org-name">{workspace.name}</div>
           <div className="sb-org-meta">{workspace.meta}</div>
         </div>
       </div>
 
-      <button className="sb-new" onClick={onNew} title="New analysis">
+      {canAnalyse && <button className="sb-new" onClick={onNew} title="New analysis">
         <Plus size={16} strokeWidth={2} />
         <span className="hide-collapsed">New analysis</span>
-        <kbd className="hide-collapsed">Ctrl K</kbd>
-      </button>
+        <kbd className="hide-collapsed" aria-label={`Shortcut ${shortcut}`}>{shortcut}</kbd>
+      </button>}
 
       <nav className="sb-nav">
         {NAV.map((n) => (
           <button key={n.id} className="sb-link" aria-current={view === n.id ? "page" : undefined} onClick={() => onNavigate(n.id)} title={n.label}>
             <n.icon size={16} strokeWidth={1.75} />
             <span className="hide-collapsed">{n.label}</span>
-            {counts[n.id] > 0 && <span className="count hide-collapsed tnum">{counts[n.id]}</span>}
           </button>
         ))}
       </nav>
 
-      <div className="sb-section-label hide-collapsed">Recent analyses</div>
-      <div className="sb-recent hide-collapsed">
-        {recent.length === 0 && <div className="sb-empty">Your analyses will appear here.</div>}
+      <div className="sb-recent hide-collapsed" aria-label="Recent analyses" role="group">
+        {recent.length === 0 && <div className="sb-empty">{mode === "live" ? "Analyses will appear here once asking questions is connected." : "Your analyses will appear here."}</div>}
         {recent.map((c) => (
           <button key={c.id} className="sb-item" aria-current={view === "chat" && c.id === activeId ? "true" : undefined} onClick={() => onOpenConversation(c.id)} title={c.title}>
             {c.title}
@@ -67,7 +72,7 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
       <div className="sb-foot">
         <div className="sb-user hide-collapsed">
           <div>{mode === "demo" ? "Demo session" : "Signed in"}</div>
-          <div>{mode === "demo" ? "No account needed" : "Hosptic workspace"}</div>
+          <div>{mode === "demo" ? "No account needed" : workspace.user || workspace.meta}</div>
         </div>
         {mode === "live" && <SignOutButton />}
         {mode === "demo" && (

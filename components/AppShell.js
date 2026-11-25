@@ -10,10 +10,24 @@ import { liveAdapter } from "@/lib/workspace/live-adapter";
 import { useSession } from "./auth/SessionProvider";
 import { ROLE_LABELS } from "@/lib/auth/session";
 import DemoBanner from "./demo/DemoBanner";
+import LiveHome from "./live/LiveHome";
+import { ConfirmProvider, useConfirm } from "./ui/ConfirmDialog";
+import { permissionsFor } from "@/lib/auth/session";
 
 const DEFAULT_DATASETS = ["maternal"];
 
-export default function AppShell({ adapter = liveAdapter }) {
+export default function AppShell(props) {
+  return (
+    <ConfirmProvider>
+      <WorkspaceShell {...props} />
+    </ConfirmProvider>
+  );
+}
+
+function WorkspaceShell({ adapter = liveAdapter }) {
+  const confirm = useConfirm();
+  const isLive = adapter.mode === "live";
+  const [datasetsStatus, setDatasetsStatus] = useState("loading");
   const [ready, setReady] = useState(false);
   const [view, setView] = useState("chat");
   const [collapsed, setCollapsed] = useState(false);
@@ -30,7 +44,7 @@ export default function AppShell({ adapter = liveAdapter }) {
 
   const session = useSession();
   const identity = adapter.mode === "live" && session
-    ? { name: session.organization.name, meta: ROLE_LABELS[session.role] || "Member" }
+    ? { name: session.organization.name, meta: ROLE_LABELS[session.role] || "Member", user: session.user.fullName }
     : adapter.identity;
 
   const storageKeys = adapter.storage;
@@ -54,15 +68,25 @@ export default function AppShell({ adapter = liveAdapter }) {
     setConversations(seeded ? seeded.conversations : loadConversations(storageKeys.conversations));
     setReports(seeded ? seeded.reports : loadReports(storageKeys.reports));
     try { setCollapsed(window.localStorage.getItem("hosptic.sidebar") === "collapsed"); } catch {}
+    adapter.purgeLegacy?.();
     setReady(true);
-    adapter.listDatasets().then(setDatasets).catch(() => setDatasets([]));
   }, [adapter, seedDemo, storageKeys]);
+
+  const loadDatasets = useCallback(() => {
+    setDatasetsStatus("loading");
+    adapter.listDatasets()
+      .then((items) => { setDatasets(items); setDatasetsStatus("ready"); })
+      .catch(() => { setDatasets([]); setDatasetsStatus("error"); });
+  }, [adapter]);
+
+  useEffect(() => { loadDatasets(); }, [loadDatasets]);
 
   useEffect(() => { if (ready) saveConversations(conversations, storageKeys.conversations); }, [conversations, ready, storageKeys]);
   useEffect(() => { if (ready) saveReports(reports, storageKeys.reports); }, [reports, ready, storageKeys]);
 
-  const resetDemo = () => {
-    if (!window.confirm("Reset the demo? Sample conversations and reports will return to their original state.")) return;
+  const resetDemo = async () => {
+    const ok = await confirm({ title: "Reset the demo?", body: "Sample conversations and reports return to their original state. Anything you added in the demo is removed.", confirmLabel: "Reset demo" });
+    if (!ok) return;
     const seed = seedDemo();
     setConversations(seed.conversations);
     setReports(seed.reports);
@@ -176,12 +200,13 @@ export default function AppShell({ adapter = liveAdapter }) {
   const openedReport = reports.find((r) => r.id === openReportId);
 
   const sidebarView = view === "report" ? "reports" : view;
-  const mobileTitle = view === "chat" ? (active?.title || "New analysis") : { conversations: "Conversations", datasets: "Datasets", reports: "Reports", report: "Report" }[view];
+  const mobileTitle = view === "chat" ? (isLive ? "Workspace" : active?.title || "New analysis") : { conversations: "Conversations", datasets: "Datasets", reports: "Reports", report: "Report" }[view];
 
   return (
     <div className={`shell ${collapsed ? "collapsed" : ""} ${drawer ? "drawer-open" : ""}`}>
       <Sidebar
         mode={adapter.mode}
+        canAnalyse={adapter.capabilities?.analyse !== false}
         workspace={identity}
         view={sidebarView}
         collapsed={collapsed}
@@ -201,7 +226,18 @@ export default function AppShell({ adapter = liveAdapter }) {
           <button className="icon-btn" onClick={() => setDrawer(true)} aria-label="Open menu"><Menu size={19} /></button>
           <div className="topbar-title">{mobileTitle}</div>
         </div>
-        {view === "chat" && (
+        {isLive && (view === "chat" || view === "datasets") && (
+          <LiveHome
+            datasets={datasets}
+            status={datasetsStatus}
+            onRetry={loadDatasets}
+            canUpload={permissionsFor(session?.role).uploadDatasets}
+            upload={(form) => adapter.uploadDataset(form)}
+            onUploaded={loadDatasets}
+            heading={view === "chat" ? "home" : "datasets"}
+          />
+        )}
+        {!isLive && view === "chat" && (
           <Workspace
             key={activeId || "new"}
             conversation={active}
@@ -222,7 +258,7 @@ export default function AppShell({ adapter = liveAdapter }) {
         {view === "conversations" && (
           <ConversationsPage conversations={conversations} onOpen={openConversation} onRename={renameConversation} onDelete={deleteConversation} onNew={newAnalysis} />
         )}
-        {view === "datasets" && (
+        {!isLive && view === "datasets" && (
           <DatasetsPage datasets={datasets} onAnalyse={(id) => { newAnalysis(); setDraftDatasets([id]); }} />
         )}
         {view === "reports" && (
