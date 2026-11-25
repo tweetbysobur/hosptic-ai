@@ -6,10 +6,12 @@ import Sidebar from "./Sidebar";
 import Workspace from "./Workspace";
 import { ConversationsPage, DatasetsPage, ReportsPage, ReportView } from "./Pages";
 import { loadConversations, saveConversations, loadReports, saveReports, uid, titleFrom, reportToMarkdown, downloadText } from "@/lib/store";
+import { liveAdapter } from "@/lib/workspace/live-adapter";
+import DemoBanner from "./demo/DemoBanner";
 
 const DEFAULT_DATASETS = ["maternal"];
 
-export default function AppShell() {
+export default function AppShell({ adapter = liveAdapter }) {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState("chat");
   const [collapsed, setCollapsed] = useState(false);
@@ -24,16 +26,45 @@ export default function AppShell() {
   const [error, setError] = useState(null);
   const inFlight = useRef(false);
 
+  const storageKeys = adapter.storage;
+
+  // Demo workspaces start with completed sample analyses. The seeded flag stops them being
+  // recreated on every visit, so changes a judge makes are kept until they reset the demo.
+  const seedDemo = useCallback(() => {
+    const seed = adapter.seed();
+    saveConversations(seed.conversations, storageKeys.conversations);
+    saveReports(seed.reports, storageKeys.reports);
+    try { window.localStorage.setItem(storageKeys.seeded, "1"); } catch {}
+    return seed;
+  }, [adapter, storageKeys]);
+
   useEffect(() => {
-    setConversations(loadConversations());
-    setReports(loadReports());
+    let alreadySeeded = true;
+    if (adapter.seed && storageKeys.seeded) {
+      try { alreadySeeded = window.localStorage.getItem(storageKeys.seeded) !== null; } catch { alreadySeeded = false; }
+    }
+    const seeded = adapter.seed && !alreadySeeded ? seedDemo() : null;
+    setConversations(seeded ? seeded.conversations : loadConversations(storageKeys.conversations));
+    setReports(seeded ? seeded.reports : loadReports(storageKeys.reports));
     try { setCollapsed(window.localStorage.getItem("hosptic.sidebar") === "collapsed"); } catch {}
     setReady(true);
-    fetch("/api/datasets").then((r) => r.json()).then(setDatasets).catch(() => setDatasets([]));
-  }, []);
+    adapter.listDatasets().then(setDatasets).catch(() => setDatasets([]));
+  }, [adapter, seedDemo, storageKeys]);
 
-  useEffect(() => { if (ready) saveConversations(conversations); }, [conversations, ready]);
-  useEffect(() => { if (ready) saveReports(reports); }, [reports, ready]);
+  useEffect(() => { if (ready) saveConversations(conversations, storageKeys.conversations); }, [conversations, ready, storageKeys]);
+  useEffect(() => { if (ready) saveReports(reports, storageKeys.reports); }, [reports, ready, storageKeys]);
+
+  const resetDemo = () => {
+    if (!window.confirm("Reset the demo? Sample conversations and reports will return to their original state.")) return;
+    const seed = seedDemo();
+    setConversations(seed.conversations);
+    setReports(seed.reports);
+    setActiveId(null);
+    setDraftDatasets(DEFAULT_DATASETS);
+    setView("chat");
+    setDrawer(false);
+    setError(null);
+  };
 
   const active = useMemo(() => conversations.find((c) => c.id === activeId) || null, [conversations, activeId]);
 
@@ -102,13 +133,7 @@ export default function AppShell() {
 
     try {
       const history = conv.messages.filter((m) => m.role === "assistant").map((m) => m.response);
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, datasetIds: conv.datasetIds, context: conv.context, history }),
-      });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Request failed (${res.status})`);
-      const response = await res.json();
+      const response = await adapter.analyze({ message, datasetIds: conv.datasetIds, context: conv.context, history });
       let reportId = null;
       if (response.type === "report" && response.report) {
         reportId = uid();
@@ -149,6 +174,8 @@ export default function AppShell() {
   return (
     <div className={`shell ${collapsed ? "collapsed" : ""} ${drawer ? "drawer-open" : ""}`}>
       <Sidebar
+        mode={adapter.mode}
+        workspace={adapter.identity}
         view={sidebarView}
         collapsed={collapsed}
         onToggleCollapse={toggleCollapse}
@@ -162,6 +189,7 @@ export default function AppShell() {
       />
       <div className="scrim" onClick={() => setDrawer(false)} />
       <main className="main">
+        {adapter.mode === "demo" && <DemoBanner onReset={resetDemo} />}
         <div className="topbar">
           <button className="icon-btn" onClick={() => setDrawer(true)} aria-label="Open menu"><Menu size={19} /></button>
           <div className="topbar-title">{mobileTitle}</div>

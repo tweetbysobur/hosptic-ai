@@ -17,6 +17,10 @@ export default function Hero() {
           <Button href="/app">Start Analysing</Button>
           <Button href="#product" variant="secondary">Explore Platform</Button>
         </div>
+
+        <a href="/demo" className="hero-rise hero-delay-3 mt-6 text-[15px] font-semibold text-ink underline decoration-primary decoration-2 underline-offset-4 transition hover:text-rose">
+          Try the demo with synthetic data, no account needed
+        </a>
       </div>
     </section>
   );
