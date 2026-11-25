@@ -33,7 +33,7 @@ export default function Hero() {
             />
           </picture>
         </div>
-        <figcaption className="mt-4 text-center text-sm text-muted">{HERO.screenshotCaption}</figcaption>
+        <figcaption className="mt-4 text-center text-sm text-ink-2">{HERO.screenshotCaption}</figcaption>
       </figure>
     </section>
   );

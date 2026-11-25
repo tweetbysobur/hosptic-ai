@@ -14,8 +14,8 @@ export default function SiteFooter() {
                 Hosptic <span className="font-semibold text-muted">AI</span>
               </span>
             </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted">
-              Conversational analysis for hospital data. Clearer insights for better decisions.
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-2">
+              Conversational analysis for hospital data.
             </p>
           </div>
 
@@ -25,7 +25,7 @@ export default function SiteFooter() {
               <ul className="mt-4 flex flex-col gap-3">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <a href={l.href} className="text-sm text-muted transition hover:text-rose">{l.label}</a>
+                    <a href={l.href} className="text-sm text-ink-2 transition hover:text-rose">{l.label}</a>
                   </li>
                 ))}
               </ul>
@@ -33,9 +33,8 @@ export default function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-line pt-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-14 flex flex-col gap-3 border-t border-line pt-6 text-sm text-ink-2 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 Hosptic AI. All rights reserved.</p>
-          <p>Statistical results describe associations in the data and do not establish cause.</p>
         </div>
       </div>
     </footer>
