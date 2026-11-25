@@ -155,7 +155,7 @@ describe("correlation and regression", () => {
 
 describe("runAnalysis", () => {
   const table = (headers, rows) => {
-    const { DataFrame } = require("danfojs-node");
+    const { ColumnTable: DataFrame } = require("../../src/utils/column-table");
     const df = new DataFrame(rows, { columns: headers });
     return { headers, df, rowCount: rows.length, columnCount: headers.length, malformedRows: 0 };
   };
