@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, MessagesSquare, Database, FileText, PanelLeftClose, PanelLeftOpen, Lock, X } from "lucide-react";
+import { Plus, MessagesSquare, Database, FileText, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import Link from "next/link";
 import Logo from "./Logo";
 
@@ -27,11 +27,11 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
         </button>
       </div>
 
-      <div className="sb-org" title="Hospital workspace · Private">
+      <div className="sb-org" title="Hospital workspace · Demonstration data">
         <div className="sb-org-avatar">HW</div>
         <div className="sb-org-text hide-collapsed">
           <div className="sb-org-name">Hospital workspace</div>
-          <div className="sb-org-meta"><Lock size={11} strokeWidth={2} /> Private hospital workspace</div>
+          <div className="sb-org-meta">Demonstration data</div>
         </div>
       </div>
 
@@ -63,10 +63,10 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
       {collapsed && <div style={{ flex: 1 }} />}
 
       <div className="sb-foot">
-        <div className="sb-user-avatar">AN</div>
+        <div className="sb-user-avatar">DW</div>
         <div className="sb-user hide-collapsed">
-          <div>Signed-in analyst</div>
-          <div>Analyst</div>
+          <div>Demo workspace</div>
+          <div>Sign-in not yet available</div>
         </div>
       </div>
     </aside>

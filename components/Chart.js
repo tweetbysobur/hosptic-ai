@@ -11,7 +11,7 @@ const C = {
   highlight: "var(--chart-highlight)",
   grid: "var(--chart-grid)",
   band: "var(--chart-band)",
-  axis: "#8a847f",
+  axis: "#858b98",
 };
 const tick = { fontSize: 12, fill: C.axis };
 const fmt = (v, unit) => (v === null || v === undefined ? "—" : `${Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 })}${unit === "%" ? "%" : unit ? ` ${unit.trim()}` : ""}`);
@@ -67,10 +67,10 @@ function RateBars({ chart }) {
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={chart.data} margin={{ top: 20, right: 8, left: 0, bottom: 4 }}>
         <CartesianGrid vertical={false} stroke={C.grid} />
-        <XAxis dataKey={chart.xKey} tick={tick} tickLine={false} axisLine={{ stroke: "#d6d3d1" }} interval={0} />
+        <XAxis dataKey={chart.xKey} tick={tick} tickLine={false} axisLine={{ stroke: "#d9d2cf" }} interval={0} />
         <YAxis tick={tick} tickLine={false} axisLine={false} width={44} tickFormatter={(v) => (isRate ? `${v}%` : v.toLocaleString())} />
         <Tooltip
-          cursor={{ fill: "rgba(28,25,23,0.04)" }}
+          cursor={{ fill: "rgba(37,42,52,0.05)" }}
           content={
             <Tip
               rows={(d) =>
@@ -82,14 +82,14 @@ function RateBars({ chart }) {
           }
         />
         {chart.reference && (
-          <ReferenceLine y={chart.reference.value} stroke="#a8a29e" strokeDasharray="4 4" label={{ value: chart.reference.label, position: "insideTopRight", fontSize: 11, fill: C.axis }} />
+          <ReferenceLine y={chart.reference.value} stroke="#858b98" strokeDasharray="4 4" label={{ value: chart.reference.label, position: "insideTopRight", fontSize: 11, fill: C.axis }} />
         )}
         <Bar dataKey={s.key} radius={[4, 4, 0, 0]} maxBarSize={64} isAnimationActive animationDuration={500}
-          label={{ position: "top", fontSize: 12, fill: "#57534e", formatter: (v) => (isRate ? `${v}%` : v.toLocaleString()), offset: chart.errorKey ? 14 : 6 }}>
+          label={{ position: "top", fontSize: 12, fill: "#5a606c", formatter: (v) => (isRate ? `${v}%` : v.toLocaleString()), offset: chart.errorKey ? 14 : 6 }}>
           {chart.data.map((d) => (
             <Cell key={d[chart.xKey]} fill={chart.highlight === d[chart.xKey] ? C.highlight : C.primary} />
           ))}
-          {chart.errorKey && <ErrorBar dataKey={chart.errorKey} width={6} strokeWidth={1.25} stroke="#1c1917" opacity={0.55} />}
+          {chart.errorKey && <ErrorBar dataKey={chart.errorKey} width={6} strokeWidth={1.25} stroke="#252a34" opacity={0.55} />}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
@@ -102,10 +102,10 @@ function Histogram({ chart }) {
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={chart.data} margin={{ top: 8, right: 8, left: 0, bottom: 18 }} barCategoryGap={1}>
         <CartesianGrid vertical={false} stroke={C.grid} />
-        <XAxis dataKey={chart.xKey} tick={tick} tickLine={false} axisLine={{ stroke: "#d6d3d1" }}
+        <XAxis dataKey={chart.xKey} tick={tick} tickLine={false} axisLine={{ stroke: "#d9d2cf" }}
           label={{ value: chart.xLabel, position: "insideBottom", offset: -12, fontSize: 12, fill: C.axis }} minTickGap={8} />
         <YAxis tick={tick} tickLine={false} axisLine={false} width={44} />
-        <Tooltip cursor={{ fill: "rgba(28,25,23,0.04)" }} content={<Tip rows={(d) => [[s.label, d.n.toLocaleString()]]} />} />
+        <Tooltip cursor={{ fill: "rgba(37,42,52,0.05)" }} content={<Tip rows={(d) => [[s.label, d.n.toLocaleString()]]} />} />
         <Bar dataKey={s.key} fill={C.primary} radius={[2, 2, 0, 0]} animationDuration={500} />
       </BarChart>
     </ResponsiveContainer>
@@ -119,7 +119,7 @@ function TrendLine({ chart }) {
     <ResponsiveContainer width="100%" height={280}>
       <ComposedChart data={chart.data} margin={{ top: 12, right: 12, left: 0, bottom: 4 }}>
         <CartesianGrid vertical={false} stroke={C.grid} />
-        <XAxis dataKey={chart.xKey} tick={tick} tickLine={false} axisLine={{ stroke: "#d6d3d1" }} interval={0} />
+        <XAxis dataKey={chart.xKey} tick={tick} tickLine={false} axisLine={{ stroke: "#d9d2cf" }} interval={0} />
         <YAxis tick={tick} tickLine={false} axisLine={false} width={48} domain={["auto", "auto"]} tickFormatter={(v) => (isRate ? `${v}%` : v)} />
         <Tooltip
           content={<Tip rows={(d) => [[s.label, fmt(d.value, chart.yUnit)], ["95% CI", `${fmt(d.band[0], chart.yUnit)} – ${fmt(d.band[1], chart.yUnit)}`], ["Records", d.n.toLocaleString()]]} />}
@@ -147,13 +147,13 @@ function HBars({ chart }) {
         <BarChart data={chart.data} layout="vertical" margin={{ top: 8, right: 48, left: 8, bottom: 4 }} barGap={2}>
           <CartesianGrid horizontal={false} stroke={C.grid} />
           <XAxis type="number" tick={tick} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}${unit === "%" ? "%" : ""}`} />
-          <YAxis type="category" dataKey={chart.xKey} tick={{ ...tick, fill: "#57534e" }} tickLine={false} axisLine={false} width={190} interval={0} />
-          <Tooltip cursor={{ fill: "rgba(28,25,23,0.04)" }}
+          <YAxis type="category" dataKey={chart.xKey} tick={{ ...tick, fill: "#5a606c" }} tickLine={false} axisLine={false} width={190} interval={0} />
+          <Tooltip cursor={{ fill: "rgba(37,42,52,0.05)" }}
             content={<Tip rows={(d) => chart.series.map((s) => [s.label, fmt(d[s.key], unit)])} />} />
-          <ReferenceLine x={0} stroke="#d6d3d1" />
+          <ReferenceLine x={0} stroke="#d9d2cf" />
           {chart.series.map((s, i) => (
             <Bar key={s.key} dataKey={s.key} fill={colors[i]} radius={[0, 3, 3, 0]} maxBarSize={multi ? 14 : 20} animationDuration={500}
-              label={{ position: "right", fontSize: 11.5, fill: "#57534e", formatter: (v) => fmt(v, unit) }}>
+              label={{ position: "right", fontSize: 11.5, fill: "#5a606c", formatter: (v) => fmt(v, unit) }}>
               {!multi && chart.data.map((d) => (
                 <Cell key={d[chart.xKey]} fill={chart.highlightKeys?.includes(d[chart.xKey]) ? C.highlight : C.primary} />
               ))}
@@ -170,7 +170,7 @@ function ScatterPlot({ chart }) {
     <ResponsiveContainer width="100%" height={320}>
       <ScatterChart margin={{ top: 8, right: 12, left: 4, bottom: 22 }}>
         <CartesianGrid stroke={C.grid} />
-        <XAxis type="number" dataKey="x" name={chart.xLabel} tick={tick} tickLine={false} axisLine={{ stroke: "#d6d3d1" }} domain={["auto", "auto"]}
+        <XAxis type="number" dataKey="x" name={chart.xLabel} tick={tick} tickLine={false} axisLine={{ stroke: "#d9d2cf" }} domain={["auto", "auto"]}
           label={{ value: chart.xLabel, position: "insideBottom", offset: -14, fontSize: 12, fill: C.axis }} />
         <YAxis type="number" dataKey="y" name={chart.yLabel} tick={tick} tickLine={false} axisLine={false} width={48} domain={["auto", "auto"]}
           label={{ value: chart.yLabel, angle: -90, position: "insideLeft", fontSize: 12, fill: C.axis, dy: 50 }} />
@@ -200,8 +200,8 @@ function BoxPlot({ chart }) {
     const yy = top ? y : y + height;
     return (
       <g>
-        <line x1={cx} x2={cx} y1={y} y2={y + height} stroke="#57534e" strokeWidth={1.25} />
-        <line x1={cx - width / 5} x2={cx + width / 5} y1={yy} y2={yy} stroke="#57534e" strokeWidth={1.25} />
+        <line x1={cx} x2={cx} y1={y} y2={y + height} stroke="#5a606c" strokeWidth={1.25} />
+        <line x1={cx - width / 5} x2={cx + width / 5} y1={yy} y2={yy} stroke="#5a606c" strokeWidth={1.25} />
       </g>
     );
   };
@@ -209,7 +209,7 @@ function BoxPlot({ chart }) {
     const { x, y, width, height } = p;
     return (
       <g>
-        <rect x={x} y={y} width={width} height={Math.max(height, 0)} fill="#e2e8f0" stroke="var(--chart-primary)" strokeWidth={1.25} />
+        <rect x={x} y={y} width={width} height={Math.max(height, 0)} fill="#ebe5e2" stroke="var(--chart-primary)" strokeWidth={1.25} />
         {bottom && <line x1={x} x2={x + width} y1={y} y2={y} stroke="var(--chart-highlight)" strokeWidth={2.5} />}
       </g>
     );
@@ -218,10 +218,10 @@ function BoxPlot({ chart }) {
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 4 }} barCategoryGap="30%">
         <CartesianGrid vertical={false} stroke={C.grid} />
-        <XAxis dataKey={chart.xKey} tick={tick} tickLine={false} axisLine={{ stroke: "#d6d3d1" }} interval={0} />
+        <XAxis dataKey={chart.xKey} tick={tick} tickLine={false} axisLine={{ stroke: "#d9d2cf" }} interval={0} />
         <YAxis tick={tick} tickLine={false} axisLine={false} width={48}
           label={{ value: chart.yLabel, angle: -90, position: "insideLeft", fontSize: 12, fill: C.axis, dy: 50 }} />
-        <Tooltip cursor={{ fill: "rgba(28,25,23,0.04)" }}
+        <Tooltip cursor={{ fill: "rgba(37,42,52,0.05)" }}
           content={<Tip rows={(d) => [["Median", fmt(d.median, chart.yUnit)], ["Middle 50%", `${d.q1} – ${d.q3}`], ["Mean", fmt(d.mean, chart.yUnit)], ["Range (excl. outliers)", `${d.min} – ${d.max}`], ["Records", d.n.toLocaleString()]]} />} />
         <Bar dataKey="_base" stackId="b" fill="transparent" isAnimationActive={false} />
         <Bar dataKey="_w1" stackId="b" shape={cap(false)} isAnimationActive={false} />
