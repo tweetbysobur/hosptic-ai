@@ -1,0 +1,32 @@
+{
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": {
+      "code": "VALIDATION_ERROR",
+      "message": "Request validation failed",
+      "details": [
+        {
+          "path": "fullName",
+          "message": "String must contain at least 2 character(s)"
+        },
+        {
+          "path": "email",
+          "message": "Invalid email"
+        },
+        {
+          "path": "password",
+          "message": "Password must be at least 10 characters"
+        },
+        {
+          "path": "password",
+          "message": "Password must include a letter and a number"
+        },
+        {
+          "path": "organizationName",
+          "message": "String must contain at least 2 character(s)"
+        }
+      ]
+    }
+  }
+}

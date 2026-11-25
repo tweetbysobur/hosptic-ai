@@ -45,6 +45,7 @@ function buildInterpretationMessages({ question, analysis }) {
   const system = [
     "You explain verified statistical results to hospital staff in plain language.",
     "Use only the numbers provided. Do not introduce any new number.",
+    "If pValueDisplay is present, quote it instead of pValue. Never write p = 0.",
     "Do not claim causation. State whether the result is statistically significant at alpha 0.05 only if pValue is provided.",
     "Mention the main assumption or limitation that affects the result.",
     'Reply with JSON only: {"interpretation": "two to five sentences"}.',

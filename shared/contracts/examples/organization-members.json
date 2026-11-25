@@ -1,0 +1,30 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "id": "199c97f5-c712-42e4-822f-bfc72f3a28f9",
+        "role": "ORGANIZATION_ADMIN",
+        "status": "ACTIVE",
+        "joinedAt": "2026-11-25T12:35:43.831Z",
+        "user": {
+          "id": "01ef2d6c-480a-4f43-9822-ccb5d9043658",
+          "fullName": "Ada Okafor",
+          "email": "admin-1795610143393@example.test"
+        }
+      },
+      {
+        "id": "86c1ba09-3556-42dc-939d-6c0938127407",
+        "role": "VIEWER",
+        "status": "ACTIVE",
+        "joinedAt": "2026-11-25T12:37:18.494Z",
+        "user": {
+          "id": "3d8c1d49-abe4-451b-bdcd-825cd9ad53e3",
+          "fullName": "Nurse Person",
+          "email": "user-14958833e1@example.test"
+        }
+      }
+    ]
+  }
+}

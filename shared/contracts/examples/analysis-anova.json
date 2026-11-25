@@ -1,0 +1,167 @@
+{
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "d89ca3db-1024-4044-a967-0b361376968b",
+      "status": "COMPLETED",
+      "question": "Does length of stay differ between wards?",
+      "analysisType": "ONE_WAY_ANOVA",
+      "datasetId": "a3129a87-22b7-4a0f-8ca7-e480f8cd2f3d",
+      "userId": "01ef2d6c-480a-4f43-9822-ccb5d9043658",
+      "createdAt": "2026-11-25T12:36:07.801Z",
+      "updatedAt": "2026-11-25T12:36:21.854Z",
+      "methodology": {
+        "name": "One-way analysis of variance (ANOVA)",
+        "alpha": 0.05,
+        "variables": {
+          "group": "Ward",
+          "outcome": "Length of Stay"
+        },
+        "aiDisclosure": {
+          "note": "Statistics are calculated by deterministic code. The AI selects the method and writes the explanation.",
+          "dataSent": "Question text, column names, inferred types, missing percentages, category labels (up to 15 per column) and aggregate statistics. No row-level values and no columns flagged as personal data.",
+          "provider": "Z.ai",
+          "rationale": "Comparing a numeric outcome across three categorical groups requires one-way ANOVA."
+        },
+        "analysisType": "ONE_WAY_ANOVA",
+        "excludedRows": 0,
+        "missingDataHandling": "Complete-case analysis"
+      },
+      "results": {
+        "groups": [
+          {
+            "q1": 2,
+            "q3": 3,
+            "iqr": 1,
+            "max": 6,
+            "min": 1,
+            "mean": 2.666667,
+            "group": "Ward B",
+            "median": 3,
+            "skewness": 0.528197,
+            "variance": 1.545455,
+            "sampleSize": 45,
+            "standardDeviation": 1.243163
+          },
+          {
+            "q1": 4,
+            "q3": 5,
+            "iqr": 1,
+            "max": 7,
+            "min": 2,
+            "mean": 4.243902,
+            "group": "Ward C",
+            "median": 4,
+            "skewness": 0.260909,
+            "variance": 1.139024,
+            "sampleSize": 41,
+            "standardDeviation": 1.067251
+          },
+          {
+            "q1": 2,
+            "q3": 4,
+            "iqr": 2,
+            "max": 6,
+            "min": 1,
+            "mean": 2.941176,
+            "group": "Ward A",
+            "median": 3,
+            "skewness": 0.657817,
+            "variance": 1.996435,
+            "sampleSize": 34,
+            "standardDeviation": 1.412953
+          }
+        ],
+        "pValue": 0,
+        "effectSize": {
+          "name": "eta squared",
+          "value": 0.247196
+        },
+        "sampleSize": {
+          "total": 120,
+          "perGroup": [
+            {
+              "n": 45,
+              "group": "Ward B"
+            },
+            {
+              "n": 41,
+              "group": "Ward C"
+            },
+            {
+              "n": 34,
+              "group": "Ward A"
+            }
+          ]
+        },
+        "pValueDisplay": "<0.0001",
+        "testStatistic": {
+          "name": "F",
+          "value": 19.209493
+        },
+        "degreesOfFreedom": {
+          "within": 117,
+          "between": 2
+        }
+      },
+      "interpretation": "Length of stay differs significantly across the three wards (F = 19.209493, p <0.0001), which is statistically significant at alpha 0.05. Ward C had the longest mean stay at 4.243902 days compared to Ward A at 2.941176 and Ward B at 2.666667. The effect size (eta squared = 0.247196) indicates ward explains a substantial portion of variance in length of stay. This analysis assumes independent observations and approximately normal residuals within each group, and describes association only, not causation.",
+      "assumptions": [
+        "Observations are assumed independent. Residuals are assumed approximately normal within each group."
+      ],
+      "limitations": [
+        "Results use complete cases only. Rows with a missing value in an analysed variable are excluded.",
+        "These statistics describe association in this dataset. They do not establish causation.",
+        "Unmeasured confounding can affect every association in observational healthcare data."
+      ],
+      "visualizationData": {
+        "type": "groupSummary",
+        "groups": [
+          {
+            "q1": 2,
+            "q3": 3,
+            "iqr": 1,
+            "max": 6,
+            "min": 1,
+            "mean": 2.666667,
+            "group": "Ward B",
+            "median": 3,
+            "skewness": 0.528197,
+            "variance": 1.545455,
+            "sampleSize": 45,
+            "standardDeviation": 1.243163
+          },
+          {
+            "q1": 4,
+            "q3": 5,
+            "iqr": 1,
+            "max": 7,
+            "min": 2,
+            "mean": 4.243902,
+            "group": "Ward C",
+            "median": 4,
+            "skewness": 0.260909,
+            "variance": 1.139024,
+            "sampleSize": 41,
+            "standardDeviation": 1.067251
+          },
+          {
+            "q1": 2,
+            "q3": 4,
+            "iqr": 2,
+            "max": 6,
+            "min": 1,
+            "mean": 2.941176,
+            "group": "Ward A",
+            "median": 3,
+            "skewness": 0.657817,
+            "variance": 1.996435,
+            "sampleSize": 34,
+            "standardDeviation": 1.412953
+          }
+        ],
+        "variable": "Length of Stay"
+      }
+    }
+  }
+}

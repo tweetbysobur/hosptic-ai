@@ -160,6 +160,13 @@ describe("runAnalysis", () => {
     return { headers, df, rowCount: rows.length, columnCount: headers.length, malformedRows: 0 };
   };
 
+  test("tiny p-values get a safe display string", () => {
+    const rows = Array.from({ length: 40 }, (_, i) => [String(i), String(2 * i + (i % 3))]);
+    const t = table(["x", "y"], rows);
+    const out = runAnalysis({ analysisType: "PEARSON_CORRELATION", variables: { outcome: "y", predictor: "x" } }, t, []);
+    expect(out.results.pValueDisplay).toBe("<0.0001");
+  });
+
   test("excludes incomplete pairs and reports the count", () => {
     const t = table(["x", "y"], [["1", "2"], ["2", ""], ["3", "6"], ["4", "8"], ["5", "10"]]);
     const out = runAnalysis(

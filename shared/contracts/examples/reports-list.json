@@ -1,0 +1,25 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "items": [
+        {
+          "id": "4c49c91b-e746-4efc-bb54-d31c901baa90",
+          "analysisId": "2e0e05cd-f6ad-44fc-a184-862448abb95a",
+          "title": "Maternal age and complications",
+          "status": "READY",
+          "generatedById": "01ef2d6c-480a-4f43-9822-ccb5d9043658",
+          "createdAt": "2026-11-25T12:37:18.006Z",
+          "downloadPath": "/api/v1/reports/4c49c91b-e746-4efc-bb54-d31c901baa90/download"
+        }
+      ],
+      "meta": {
+        "page": 1,
+        "pageSize": 20,
+        "total": 1,
+        "totalPages": 1
+      }
+    }
+  }
+}

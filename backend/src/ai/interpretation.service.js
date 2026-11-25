@@ -2,7 +2,7 @@ const { getZaiClient } = require("./zai.client");
 const { interpretationSchema } = require("./schemas");
 const { buildInterpretationMessages } = require("./prompt-builder");
 
-const ALLOWED_NUMBERS = [0, 0.05, 0.95, 0.001, 0.01, 1, 2, 3, 5, 10, 95, 100];
+const ALLOWED_NUMBERS = [0, 0.05, 0.95, 0.001, 0.0001, 0.01, 1, 2, 3, 5, 10, 25, 50, 75, 95, 100];
 const NUMBER_TOKEN = /-?\d+(?:\.\d+)?/g;
 
 function collectNumbers(value, out = []) {

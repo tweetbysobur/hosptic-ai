@@ -53,6 +53,7 @@ npm test
 - `tests/unit/quality.test.js`: CSV and XLSX parsing, quality issues.
 - `tests/integration/rls.test.js`: RLS checked directly in PostgreSQL, with no application filtering.
 - `tests/integration/api.test.js`: auth, CSRF, roles, cross-organisation access, analysis, reports.
+- `tests/integration/s3.test.js` and `limits.test.js`: S3 storage with signed URLs, upload size limit.
 
 AI tests replace the Z.ai network call with a fixed response through `setZaiClientForTesting`. No test calls the live Z.ai API.
 
@@ -113,13 +114,48 @@ Analyses, reports and audit logs cannot be deleted by the runtime role. Audit lo
 
 Supported methods: descriptive statistics, Welch t-test, paired t-test, one-way ANOVA, chi-square, Pearson, Spearman, simple linear regression.
 
+## Live Z.ai test
+
+`tests/live/zai.live.test.js` calls the real Z.ai API on a synthetic maternity dataset (`tests/fixtures/synthetic.js`, seeded, no real patients). It is skipped unless `ZAI_LIVE=1`.
+
+```bash
+ZAI_API_KEY=<key> ZAI_MODEL=glm-4.6 npm run test:live
+```
+
+Last run: 7 of 7 passed with `glm-4.6`. It covered t-test, ANOVA, chi-square, correlation, descriptive and paired t-test questions, and a request to list patient names. The identifier column was never used and no names were returned. Reasoning models can take 10 to 60 seconds per call. Set `ZAI_TIMEOUT_MS` to 120000 or more if calls time out.
+
+The built-in `fetch` in Node ignores `HTTPS_PROXY`. Behind a proxy, start the process with `NODE_USE_ENV_PROXY=1` (Node 22.21 or later) and `NODE_EXTRA_CA_CERTS=<proxy CA file>`.
+
+## Object storage
+
+`STORAGE_DRIVER=s3` uses the AWS SDK v3 with path-style addressing, so it targets S3, Cloudflare R2, Backblaze B2, DigitalOcean Spaces and MinIO. Set `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY` and `STORAGE_REGION`.
+
+Bucket requirements:
+
+- Block all public access. The API never exposes object URLs. Only signed URLs from `GET /datasets/:id/download` (valid 300 seconds) reach the browser.
+- Give the access key read, write and delete on this one bucket only.
+- Objects are written with `ServerSideEncryption: AES256`. If your provider rejects that header, remove it in `src/storage/index.js`.
+
+`tests/integration/s3.test.js` runs the real S3 client code against `s3rver`, an S3-compatible emulator that verifies request signatures. It checks put, get and delete, key validation, signed URL download, tampered and expired URLs, the download endpoint, cross-organisation denial and file removal on dataset delete. It does not prove behaviour on a specific provider. Run a smoke test against your real bucket before launch.
+
 ## Known limits
 
-- Analyses run inside the request. Long AI calls hold the request open, up to `ZAI_TIMEOUT_MS`.
-- Applying cleaning operations and saving processed dataset versions is not built. The quality report gives recommendations only.
-- Inviting a member needs an existing account. There is no email invitation flow.
-- Personal-data detection uses column names only. It does not inspect values.
-- No Fisher exact test, Welch ANOVA, post-hoc tests or multiple regression.
-- Spearman p-values use a t approximation. Normality checks are skewness heuristics, not formal tests.
-- Signed download URLs need S3-compatible storage. Local storage returns 501 for that endpoint.
-- Danfo.js loads TensorFlow, which keeps the process alive. Jest runs with `--forceExit` for this reason.
+Not built yet:
+
+- Dataset cleaning and processed versions. The quality report gives recommendations only.
+- Email invitations. A member can be added only if they already have an account.
+- Password reset, email verification and multi-factor sign-in.
+- Switching organisation without logging in again.
+
+Behaviour to know:
+
+- Analyses and reports run inside the HTTP request. An analysis can hold a request open for about 2 minutes with a slow AI model. There is no job queue, so a server restart during a run leaves the record in PROCESSING. Retry works only for FAILED records, so such a record needs manual cleanup.
+- Datasets are parsed in memory on every preview and analysis. Limits: 10 MB, 100,000 rows, 200 columns.
+- Personal-data detection uses column names only. A column that holds names under a neutral header is not masked, and its category labels (up to 15 per column) can reach Z.ai. Review datasets before upload.
+- The free-text question goes to Z.ai as typed. Users must not put patient details in it.
+- Statistics: no Fisher exact test, Welch ANOVA, post-hoc tests, logistic or multiple regression, or non-parametric group tests. Normality and variance checks are skewness and variance-ratio heuristics, not formal tests. Spearman p-values use a t approximation. A binary outcome against a numeric predictor is not supported and fails with an explanation.
+- `pValue` is rounded to 6 decimals, so tiny values appear as 0. Use `pValueDisplay`.
+- Rate limiting is in memory and per process. Use a shared store if you run several instances.
+- Signed download URLs need S3-compatible storage. Local storage returns 501.
+- Danfo.js loads TensorFlow, which keeps the process alive and slows startup. Jest runs with `--forceExit` for this reason.
+- Swagger UI is off when `NODE_ENV=production`. The YAML stays in `shared/contracts`.

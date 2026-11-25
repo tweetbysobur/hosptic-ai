@@ -1,0 +1,10 @@
+{
+  "status": 409,
+  "body": {
+    "success": false,
+    "error": {
+      "code": "CONFLICT",
+      "message": "Only failed analyses can be retried"
+    }
+  }
+}

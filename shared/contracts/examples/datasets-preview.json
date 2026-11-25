@@ -1,0 +1,62 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "headers": [
+        "Patient ID",
+        "Maternal Age",
+        "BMI",
+        "Ward",
+        "Delivery Mode",
+        "Complication",
+        "Length of Stay",
+        "Birth Weight",
+        "Systolic BP Pre",
+        "Systolic BP Post"
+      ],
+      "rows": [
+        {
+          "Patient ID": "[masked]",
+          "Maternal Age": "37",
+          "BMI": "26.7",
+          "Ward": "Ward B",
+          "Delivery Mode": "Caesarean",
+          "Complication": "No",
+          "Length of Stay": "4",
+          "Birth Weight": "3292",
+          "Systolic BP Pre": "129",
+          "Systolic BP Post": "124"
+        },
+        {
+          "Patient ID": "[masked]",
+          "Maternal Age": "37",
+          "BMI": "27.1",
+          "Ward": "Ward C",
+          "Delivery Mode": "Vaginal",
+          "Complication": "Yes",
+          "Length of Stay": "6",
+          "Birth Weight": "3331",
+          "Systolic BP Pre": "149",
+          "Systolic BP Post": "134"
+        },
+        {
+          "Patient ID": "[masked]",
+          "Maternal Age": "13",
+          "BMI": "27.4",
+          "Ward": "Ward C",
+          "Delivery Mode": "Vaginal",
+          "Complication": "No",
+          "Length of Stay": "4",
+          "Birth Weight": "3437",
+          "Systolic BP Pre": "150",
+          "Systolic BP Post": "152"
+        }
+      ],
+      "maskedColumns": [
+        "Patient ID"
+      ],
+      "totalRows": 120
+    }
+  }
+}
