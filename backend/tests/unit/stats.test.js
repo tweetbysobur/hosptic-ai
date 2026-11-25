@@ -178,4 +178,16 @@ describe("runAnalysis", () => {
     expect(out.results.coefficients.slope.estimate).toBeCloseTo(2, 6);
     expect(out.limitations.length).toBeGreaterThan(0);
   });
+
+  test("scatter points put the predictor on x and the outcome on y", () => {
+    const t = table(["x", "y"], [["1", "12"], ["2", "14"], ["3", "16"], ["4", "18"]]);
+    const cols = [{ columnName: "x", inferredType: "NUMERIC" }, { columnName: "y", inferredType: "NUMERIC" }];
+    for (const analysisType of ["PEARSON_CORRELATION", "SPEARMAN_CORRELATION", "LINEAR_REGRESSION"]) {
+      const v = runAnalysis({ analysisType, variables: { outcome: "y", predictor: "x" } }, t, cols).visualizationData;
+      expect(v.x).toBe("x");
+      expect(v.y).toBe("y");
+      expect(v.points[0]).toEqual({ x: 1, y: 12 });
+      if (v.fitLine) expect(v.fitLine.slope * 1 + v.fitLine.intercept).toBeCloseTo(12, 6);
+    }
+  });
 });

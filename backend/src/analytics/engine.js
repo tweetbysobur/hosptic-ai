@@ -57,8 +57,9 @@ function completePairs(table, a, b, typeA, typeB) {
   return pairs;
 }
 
+/** Pairs come from completePairs(outcome, predictor), so the predictor is the x axis. */
 function scatterPoints(pairs) {
-  return pairs.slice(0, MAX_SCATTER_POINTS).map(([x, y]) => ({ x: round(x), y: round(y) }));
+  return pairs.slice(0, MAX_SCATTER_POINTS).map(([outcome, predictor]) => ({ x: round(predictor), y: round(outcome) }));
 }
 
 function describeNumeric(table, name) {

@@ -124,5 +124,6 @@ Field rules: password 10 to 128 characters with a letter and a number. `question
 
 ## Changelog
 
+- 0.2.1: Fixed scatter `points` for correlation and regression. `x` is now the predictor and `y` the outcome, matching the `x` and `y` labels and `fitLine`. They were swapped before.
 - 0.2.0: Added `results.pValueDisplay`. Rewrote this README from confirmed behaviour. Added `examples/`.
 - 0.1.0: Initial contract.
