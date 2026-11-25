@@ -1,0 +1,8 @@
+
+# Keep the example file in version control.
+!.env.example
+node_modules/
+coverage/
+.env
+storage-data/
+storage-test/
