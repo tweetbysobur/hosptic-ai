@@ -27,10 +27,10 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
         </button>
       </div>
 
-      <div className="sb-org" title="Meridian General Hospital · Private workspace">
-        <div className="sb-org-avatar">MG</div>
+      <div className="sb-org" title="Hospital workspace · Private">
+        <div className="sb-org-avatar">HW</div>
         <div className="sb-org-text hide-collapsed">
-          <div className="sb-org-name">Meridian General Hospital</div>
+          <div className="sb-org-name">Hospital workspace</div>
           <div className="sb-org-meta"><Lock size={11} strokeWidth={2} /> Private hospital workspace</div>
         </div>
       </div>
@@ -63,10 +63,10 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
       {collapsed && <div style={{ flex: 1 }} />}
 
       <div className="sb-foot">
-        <div className="sb-user-avatar">CR</div>
+        <div className="sb-user-avatar">AN</div>
         <div className="sb-user hide-collapsed">
-          <div>Clinical Research Unit</div>
-          <div>Analyst access</div>
+          <div>Signed-in analyst</div>
+          <div>Analyst</div>
         </div>
       </div>
     </aside>

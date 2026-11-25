@@ -9,8 +9,8 @@ export default function Capabilities() {
       <SectionIntro id="capabilities-title" eyebrow={CAPABILITIES.eyebrow} title={CAPABILITIES.title} />
       <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {CAPABILITIES.items.map((c) => (
-          <article key={c.title} className="rounded-2xl border border-line bg-surface p-7 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_18px_40px_-24px_rgba(37,42,52,0.35)]">
-            <span className="grid size-11 place-items-center rounded-xl bg-blush text-rose">
+          <article key={c.title} className="rounded-2xl border border-line bg-surface p-7 shadow-card transition duration-300 hover:border-primary/40 hover:shadow-[0_18px_40px_-24px_rgba(37,42,52,0.35)]">
+            <span className="inline-flex text-rose">
               <Icon name={c.icon} size={20} />
             </span>
             <h3 className="mt-6 text-lg font-bold text-ink">{c.title}</h3>

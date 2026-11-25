@@ -12,8 +12,8 @@ export default function ProductIntro() {
         <SectionIntro id="about-title" eyebrow={PRODUCT_INTRO.eyebrow} title={PRODUCT_INTRO.title} description={PRODUCT_INTRO.description} />
         <ul className="flex flex-col gap-4">
           {PRODUCT_INTRO.points.map((p, i) => (
-            <li key={p.title} className="flex gap-5 rounded-2xl border border-line bg-surface p-6 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-primary/40">
-              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-blush text-rose">
+            <li key={p.title} className="flex gap-5 rounded-2xl border border-line bg-surface p-6 shadow-card transition duration-300 hover:border-primary/40">
+              <span className="inline-flex shrink-0 text-rose">
                 <Icon name={POINT_ICONS[i]} size={20} />
               </span>
               <div>

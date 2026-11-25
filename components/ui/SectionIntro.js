@@ -3,9 +3,6 @@ export default function SectionIntro({ eyebrow, title, description, id, align = 
   const dark = tone === "dark";
   return (
     <div className={`max-w-2xl ${alignment}`}>
-      {eyebrow && (
-        <p className={`text-sm font-semibold uppercase tracking-[0.14em] ${dark ? "text-primary" : "text-rose"}`}>{eyebrow}</p>
-      )}
       <h2 id={id} className={`mt-3 text-balance text-3xl font-extrabold leading-[1.12] tracking-[-0.02em] sm:text-4xl lg:text-[42px] ${dark ? "text-white" : "text-ink"}`}>
         {title}
       </h2>
