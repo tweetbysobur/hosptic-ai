@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test \"tests/**/*.test.js\""
+    "test": "node --test \"tests/**/*.test.js\"",
+    "test:e2e": "node --test tests/e2e/organisation-isolation.mjs && node tests/e2e/live-auth.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.460.0",

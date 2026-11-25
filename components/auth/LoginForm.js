@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Field from "./Field";
 import Notice from "./Notice";
 import SubmitButton from "@/components/ui/SubmitButton";
-import { postJson } from "@/lib/auth/client";
+import { apiClient } from "@/lib/api/client";
+import { fieldErrorsFrom } from "@/lib/api/errors";
+import { messageForError } from "@/lib/auth/messages";
 import { validateLogin, hasErrors } from "@/lib/auth/validation";
 
 export default function LoginForm({ next }) {
@@ -15,6 +17,15 @@ export default function LoginForm({ next }) {
   const [formError, setFormError] = useState(null);
   const [pending, setPending] = useState(false);
   const inFlight = useRef(false);
+
+  // A visitor who already has a valid session goes straight to the requested page.
+  useEffect(() => {
+    let active = true;
+    apiClient.auth.me()
+      .then(() => { if (active) router.replace(next); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [next, router]);
 
   const update = (key) => (value) => setValues((v) => ({ ...v, [key]: value }));
 
@@ -28,16 +39,16 @@ export default function LoginForm({ next }) {
 
     inFlight.current = true;
     setPending(true);
-    const result = await postJson("/api/auth/login", values);
-    if (result.ok) {
+    try {
+      await apiClient.auth.login({ email: values.email.trim(), password: values.password });
       router.replace(next);
       router.refresh();
-      return;
+    } catch (error) {
+      setFormError(messageForError(error));
+      setErrors(fieldErrorsFrom(error));
+      setPending(false);
+      inFlight.current = false;
     }
-    setFormError(result.error);
-    setErrors(result.fields || {});
-    setPending(false);
-    inFlight.current = false;
   };
 
   return (
