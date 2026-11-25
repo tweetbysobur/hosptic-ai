@@ -6,9 +6,8 @@ export default function Hero() {
   return (
     <section id="product" className="scroll-mt-20 bg-canvas pt-16 pb-20 sm:pt-24 sm:pb-28" aria-labelledby="hero-title">
       <div className="mx-auto flex w-full max-w-[880px] flex-col items-center px-5 text-center sm:px-8">
-        <h1 id="hero-title" className="text-balance text-[40px] font-extrabold leading-[1.05] tracking-[-0.035em] text-ink sm:text-6xl lg:text-[72px]">
-          {HERO.headline}
-        </h1>
+        {/* The headline stays for screen readers and search, but is not shown. */}
+        <h1 id="hero-title" className="sr-only">{HERO.headline}</h1>
         <p className="mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-ink-2 sm:text-xl">
           {HERO.description}
         </p>
