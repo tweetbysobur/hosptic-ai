@@ -1,0 +1,551 @@
+{
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "6f10fa48-b163-4c51-a31a-129f920ca3e5",
+      "status": "COMPLETED",
+      "question": "Is maternal age correlated with birth weight?",
+      "analysisType": "PEARSON_CORRELATION",
+      "datasetId": "a3129a87-22b7-4a0f-8ca7-e480f8cd2f3d",
+      "userId": "01ef2d6c-480a-4f43-9822-ccb5d9043658",
+      "createdAt": "2026-11-25T12:36:36.561Z",
+      "updatedAt": "2026-11-25T12:36:51.710Z",
+      "methodology": {
+        "name": "Pearson correlation",
+        "alpha": 0.05,
+        "variables": {
+          "outcome": "Birth Weight",
+          "predictor": "Maternal Age"
+        },
+        "aiDisclosure": {
+          "note": "Statistics are calculated by deterministic code. The AI selects the method and writes the explanation.",
+          "dataSent": "Question text, column names, inferred types, missing percentages, category labels (up to 15 per column) and aggregate statistics. No row-level values and no columns flagged as personal data.",
+          "provider": "Z.ai",
+          "rationale": "Assessing linear correlation between two numeric variables."
+        },
+        "analysisType": "PEARSON_CORRELATION",
+        "excludedRows": 0,
+        "missingDataHandling": "Complete-case analysis"
+      },
+      "results": {
+        "pValue": 0.393738,
+        "effectSize": {
+          "name": "Pearson r",
+          "value": 0.078557
+        },
+        "sampleSize": {
+          "pairs": 120
+        },
+        "pValueDisplay": "0.3937",
+        "testStatistic": {
+          "name": "t",
+          "value": 0.855991
+        },
+        "degreesOfFreedom": 118,
+        "confidenceInterval": {
+          "level": 0.95,
+          "lower": -0.102122,
+          "upper": 0.254219
+        }
+      },
+      "interpretation": "The Pearson correlation between maternal age and birth weight was r = 0.078557 based on 120 pairs, indicating a very weak linear association. This result is not statistically significant at alpha 0.05 (p = 0.3937), and the 95% confidence interval of -0.102122 to 0.254219 includes zero. The analysis assumes a linear relationship and approximately bivariate normal data with independent pairs. This describes association only, not causation, and unmeasured confounding may affect the observed relationship.",
+      "assumptions": [
+        "Pearson's r measures linear association only. A scatter plot should show a roughly linear pattern.",
+        "Pairs are assumed independent and approximately bivariate normal."
+      ],
+      "limitations": [
+        "Results use complete cases only. Rows with a missing value in an analysed variable are excluded.",
+        "These statistics describe association in this dataset. They do not establish causation.",
+        "Unmeasured confounding can affect every association in observational healthcare data."
+      ],
+      "visualizationData": {
+        "x": "Maternal Age",
+        "y": "Birth Weight",
+        "type": "scatter",
+        "points": [
+          {
+            "x": 3292,
+            "y": 37
+          },
+          {
+            "x": 3331,
+            "y": 37
+          },
+          {
+            "x": 3437,
+            "y": 13
+          },
+          {
+            "x": 3702,
+            "y": 30
+          },
+          {
+            "x": 3685,
+            "y": 26
+          },
+          {
+            "x": 3507,
+            "y": 24
+          },
+          {
+            "x": 3072,
+            "y": 29
+          },
+          {
+            "x": 2988,
+            "y": 20
+          },
+          {
+            "x": 2757,
+            "y": 36
+          },
+          {
+            "x": 2981,
+            "y": 21
+          },
+          {
+            "x": 3099,
+            "y": 24
+          },
+          {
+            "x": 2690,
+            "y": 29
+          },
+          {
+            "x": 3268,
+            "y": 20
+          },
+          {
+            "x": 2999,
+            "y": 35
+          },
+          {
+            "x": 3017,
+            "y": 27
+          },
+          {
+            "x": 3640,
+            "y": 21
+          },
+          {
+            "x": 3582,
+            "y": 31
+          },
+          {
+            "x": 3216,
+            "y": 19
+          },
+          {
+            "x": 3328,
+            "y": 35
+          },
+          {
+            "x": 3374,
+            "y": 25
+          },
+          {
+            "x": 3863,
+            "y": 35
+          },
+          {
+            "x": 3936,
+            "y": 39
+          },
+          {
+            "x": 2906,
+            "y": 31
+          },
+          {
+            "x": 2978,
+            "y": 28
+          },
+          {
+            "x": 3332,
+            "y": 18
+          },
+          {
+            "x": 2874,
+            "y": 19
+          },
+          {
+            "x": 3463,
+            "y": 31
+          },
+          {
+            "x": 3797,
+            "y": 15
+          },
+          {
+            "x": 3033,
+            "y": 28
+          },
+          {
+            "x": 3959,
+            "y": 38
+          },
+          {
+            "x": 3854,
+            "y": 22
+          },
+          {
+            "x": 2815,
+            "y": 29
+          },
+          {
+            "x": 3054,
+            "y": 34
+          },
+          {
+            "x": 3113,
+            "y": 36
+          },
+          {
+            "x": 3149,
+            "y": 22
+          },
+          {
+            "x": 3753,
+            "y": 18
+          },
+          {
+            "x": 3014,
+            "y": 34
+          },
+          {
+            "x": 3458,
+            "y": 34
+          },
+          {
+            "x": 2859,
+            "y": 30
+          },
+          {
+            "x": 2681,
+            "y": 28
+          },
+          {
+            "x": 3345,
+            "y": 23
+          },
+          {
+            "x": 2977,
+            "y": 29
+          },
+          {
+            "x": 2779,
+            "y": 25
+          },
+          {
+            "x": 3092,
+            "y": 20
+          },
+          {
+            "x": 3774,
+            "y": 26
+          },
+          {
+            "x": 3479,
+            "y": 36
+          },
+          {
+            "x": 3849,
+            "y": 32
+          },
+          {
+            "x": 3403,
+            "y": 21
+          },
+          {
+            "x": 3445,
+            "y": 39
+          },
+          {
+            "x": 3416,
+            "y": 36
+          },
+          {
+            "x": 3427,
+            "y": 22
+          },
+          {
+            "x": 3306,
+            "y": 26
+          },
+          {
+            "x": 3455,
+            "y": 50
+          },
+          {
+            "x": 3086,
+            "y": 30
+          },
+          {
+            "x": 4086,
+            "y": 32
+          },
+          {
+            "x": 3493,
+            "y": 23
+          },
+          {
+            "x": 3278,
+            "y": 34
+          },
+          {
+            "x": 2563,
+            "y": 23
+          },
+          {
+            "x": 3071,
+            "y": 33
+          },
+          {
+            "x": 2896,
+            "y": 44
+          },
+          {
+            "x": 2814,
+            "y": 34
+          },
+          {
+            "x": 3054,
+            "y": 36
+          },
+          {
+            "x": 3243,
+            "y": 36
+          },
+          {
+            "x": 3295,
+            "y": 26
+          },
+          {
+            "x": 3607,
+            "y": 32
+          },
+          {
+            "x": 2550,
+            "y": 37
+          },
+          {
+            "x": 3471,
+            "y": 28
+          },
+          {
+            "x": 2666,
+            "y": 36
+          },
+          {
+            "x": 3492,
+            "y": 28
+          },
+          {
+            "x": 3624,
+            "y": 31
+          },
+          {
+            "x": 3141,
+            "y": 30
+          },
+          {
+            "x": 3156,
+            "y": 32
+          },
+          {
+            "x": 2885,
+            "y": 36
+          },
+          {
+            "x": 2601,
+            "y": 24
+          },
+          {
+            "x": 3777,
+            "y": 34
+          },
+          {
+            "x": 3100,
+            "y": 28
+          },
+          {
+            "x": 2721,
+            "y": 20
+          },
+          {
+            "x": 2814,
+            "y": 26
+          },
+          {
+            "x": 4225,
+            "y": 34
+          },
+          {
+            "x": 3785,
+            "y": 28
+          },
+          {
+            "x": 3065,
+            "y": 27
+          },
+          {
+            "x": 2875,
+            "y": 33
+          },
+          {
+            "x": 3214,
+            "y": 21
+          },
+          {
+            "x": 3707,
+            "y": 28
+          },
+          {
+            "x": 2747,
+            "y": 26
+          },
+          {
+            "x": 3239,
+            "y": 35
+          },
+          {
+            "x": 3061,
+            "y": 28
+          },
+          {
+            "x": 3046,
+            "y": 28
+          },
+          {
+            "x": 3418,
+            "y": 38
+          },
+          {
+            "x": 3097,
+            "y": 27
+          },
+          {
+            "x": 2761,
+            "y": 33
+          },
+          {
+            "x": 2845,
+            "y": 20
+          },
+          {
+            "x": 2681,
+            "y": 29
+          },
+          {
+            "x": 2815,
+            "y": 22
+          },
+          {
+            "x": 2927,
+            "y": 24
+          },
+          {
+            "x": 2659,
+            "y": 26
+          },
+          {
+            "x": 2849,
+            "y": 34
+          },
+          {
+            "x": 3215,
+            "y": 38
+          },
+          {
+            "x": 2887,
+            "y": 31
+          },
+          {
+            "x": 3260,
+            "y": 34
+          },
+          {
+            "x": 3236,
+            "y": 28
+          },
+          {
+            "x": 3338,
+            "y": 40
+          },
+          {
+            "x": 4223,
+            "y": 35
+          },
+          {
+            "x": 3286,
+            "y": 30
+          },
+          {
+            "x": 2833,
+            "y": 25
+          },
+          {
+            "x": 2753,
+            "y": 32
+          },
+          {
+            "x": 4062,
+            "y": 38
+          },
+          {
+            "x": 3183,
+            "y": 25
+          },
+          {
+            "x": 3494,
+            "y": 28
+          },
+          {
+            "x": 3197,
+            "y": 41
+          },
+          {
+            "x": 3050,
+            "y": 30
+          },
+          {
+            "x": 3536,
+            "y": 20
+          },
+          {
+            "x": 3490,
+            "y": 22
+          },
+          {
+            "x": 3054,
+            "y": 41
+          },
+          {
+            "x": 2605,
+            "y": 32
+          },
+          {
+            "x": 2811,
+            "y": 25
+          },
+          {
+            "x": 3543,
+            "y": 29
+          },
+          {
+            "x": 3853,
+            "y": 34
+          },
+          {
+            "x": 3204,
+            "y": 28
+          },
+          {
+            "x": 3382,
+            "y": 26
+          }
+        ]
+      }
+    }
+  }
+}

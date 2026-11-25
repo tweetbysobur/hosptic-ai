@@ -58,14 +58,20 @@ class LocalStorage {
 }
 
 class S3Storage {
-  constructor() {
+  constructor(config = env) {
     const { S3Client } = require("@aws-sdk/client-s3");
-    this.bucket = env.STORAGE_BUCKET;
+    if (!config.STORAGE_BUCKET || !config.STORAGE_ACCESS_KEY || !config.STORAGE_SECRET_KEY) {
+      throw new Error("S3 storage needs STORAGE_BUCKET, STORAGE_ACCESS_KEY and STORAGE_SECRET_KEY");
+    }
+    this.bucket = config.STORAGE_BUCKET;
     this.client = new S3Client({
-      region: env.STORAGE_REGION,
-      endpoint: env.STORAGE_ENDPOINT,
+      region: config.STORAGE_REGION,
+      endpoint: config.STORAGE_ENDPOINT || undefined,
       forcePathStyle: true,
-      credentials: { accessKeyId: env.STORAGE_ACCESS_KEY, secretAccessKey: env.STORAGE_SECRET_KEY },
+      // Only send checksums when an operation requires them. Some S3-compatible servers reject the SDK default.
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
+      credentials: { accessKeyId: config.STORAGE_ACCESS_KEY, secretAccessKey: config.STORAGE_SECRET_KEY },
     });
   }
 
@@ -106,6 +112,12 @@ class S3Storage {
 }
 
 let instance;
+
+/** Test-only hook. Replaces the storage backend. Pass null to restore the configured one. */
+function setStorageForTesting(storage) {
+  instance = storage || undefined;
+}
+
 function getStorage() {
   if (!instance) {
     instance = env.STORAGE_DRIVER === "s3" ? new S3Storage() : new LocalStorage(env.STORAGE_LOCAL_DIR);
@@ -113,4 +125,4 @@ function getStorage() {
   return instance;
 }
 
-module.exports = { getStorage, datasetKey, reportKey, assertKey, LocalStorage };
+module.exports = { getStorage, setStorageForTesting, datasetKey, reportKey, assertKey, LocalStorage, S3Storage };

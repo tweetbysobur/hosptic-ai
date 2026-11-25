@@ -16,7 +16,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:migrate:dev": "prisma migrate dev",
-    "db:app-role": "psql \"$DIRECT_URL\" -v app_password=\"'$APP_DB_PASSWORD'\" -f sql/create-app-role.sql"
+    "db:app-role": "psql \"$DIRECT_URL\" -v app_password=\"'$APP_DB_PASSWORD'\" -f sql/create-app-role.sql",
+    "test:live": "ZAI_LIVE=1 jest --runInBand --forceExit tests/live"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1177.0",
@@ -44,6 +45,7 @@
   "devDependencies": {
     "jest": "^30.5.2",
     "prisma": "^6.19.3",
+    "s3rver": "^3.7.1",
     "supertest": "^7.3.2"
   },
   "jest": {

@@ -1,0 +1,130 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "2e0e05cd-f6ad-44fc-a184-862448abb95a",
+      "status": "COMPLETED",
+      "question": "Analyse the relationship between maternal age and delivery complications.",
+      "analysisType": "INDEPENDENT_T_TEST",
+      "datasetId": "a3129a87-22b7-4a0f-8ca7-e480f8cd2f3d",
+      "userId": "01ef2d6c-480a-4f43-9822-ccb5d9043658",
+      "createdAt": "2026-11-25T12:35:44.650Z",
+      "updatedAt": "2026-11-25T12:36:07.769Z",
+      "methodology": {
+        "name": "Welch's independent-samples t-test",
+        "alpha": 0.05,
+        "variables": {
+          "group": "Complication",
+          "outcome": "Maternal Age"
+        },
+        "aiDisclosure": {
+          "note": "Statistics are calculated by deterministic code. The AI selects the method and writes the explanation.",
+          "dataSent": "Question text, column names, inferred types, missing percentages, category labels (up to 15 per column) and aggregate statistics. No row-level values and no columns flagged as personal data.",
+          "provider": "Z.ai",
+          "rationale": "Compares mean maternal age between patients with and without delivery complications."
+        },
+        "analysisType": "INDEPENDENT_T_TEST",
+        "excludedRows": 0,
+        "missingDataHandling": "Complete-case analysis"
+      },
+      "results": {
+        "groups": [
+          {
+            "q1": 24,
+            "q3": 34,
+            "iqr": 10,
+            "max": 44,
+            "min": 13,
+            "mean": 28.644231,
+            "group": "No",
+            "median": 28,
+            "skewness": -0.032058,
+            "variance": 39.571229,
+            "sampleSize": 104,
+            "standardDeviation": 6.290567
+          },
+          {
+            "q1": 30.25,
+            "q3": 36.25,
+            "iqr": 6,
+            "max": 50,
+            "min": 25,
+            "mean": 33.75,
+            "group": "Yes",
+            "median": 33,
+            "skewness": 1.177808,
+            "variance": 37.133333,
+            "sampleSize": 16,
+            "standardDeviation": 6.093713
+          }
+        ],
+        "pValue": 0.005506,
+        "effectSize": {
+          "name": "Cohen's d",
+          "value": -0.814852
+        },
+        "sampleSize": {
+          "total": 120,
+          "groupA": 104,
+          "groupB": 16
+        },
+        "pValueDisplay": "0.0055",
+        "testStatistic": {
+          "name": "t",
+          "value": -3.10651
+        },
+        "meanDifference": -5.105769,
+        "degreesOfFreedom": 20.2423,
+        "confidenceInterval": {
+          "level": 0.95,
+          "lower": -8.531569,
+          "upper": -1.679969
+        }
+      },
+      "interpretation": "Women with delivery complications had a higher mean maternal age of 33.75 compared to 28.644231 for those without complications, a mean difference of -5.105769 years. The result is statistically significant at alpha 0.05 (p = 0.0055), with a 95% confidence interval of [-8.531569, -1.679969] and a large effect size (Cohen's d = -0.814852). Welch's test does not assume equal variances and assumes independent observations, but this analysis describes association only and does not establish causation, as unmeasured confounding may affect the observed relationship.",
+      "assumptions": [
+        "Welch's test is used, so equal variances are not assumed. Observations are assumed independent."
+      ],
+      "limitations": [
+        "Results use complete cases only. Rows with a missing value in an analysed variable are excluded.",
+        "These statistics describe association in this dataset. They do not establish causation.",
+        "Unmeasured confounding can affect every association in observational healthcare data."
+      ],
+      "visualizationData": {
+        "type": "groupSummary",
+        "groups": [
+          {
+            "q1": 24,
+            "q3": 34,
+            "iqr": 10,
+            "max": 44,
+            "min": 13,
+            "mean": 28.644231,
+            "group": "No",
+            "median": 28,
+            "skewness": -0.032058,
+            "variance": 39.571229,
+            "sampleSize": 104,
+            "standardDeviation": 6.290567
+          },
+          {
+            "q1": 30.25,
+            "q3": 36.25,
+            "iqr": 6,
+            "max": 50,
+            "min": 25,
+            "mean": 33.75,
+            "group": "Yes",
+            "median": 33,
+            "skewness": 1.177808,
+            "variance": 37.133333,
+            "sampleSize": 16,
+            "standardDeviation": 6.093713
+          }
+        ],
+        "variable": "Maternal Age"
+      }
+    }
+  }
+}

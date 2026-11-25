@@ -1,0 +1,10 @@
+{
+  "status": 501,
+  "body": {
+    "success": false,
+    "error": {
+      "code": "NOT_SUPPORTED",
+      "message": "Signed download URLs require S3-compatible storage"
+    }
+  }
+}

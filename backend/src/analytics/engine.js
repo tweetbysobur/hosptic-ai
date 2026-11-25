@@ -219,6 +219,12 @@ function runAnalysis(plan, table, columns) {
   if (analysisType === "CHI_SQUARE") limitations.push("Chi-square p-values are approximate for sparse tables.");
   if (analysisType === "LINEAR_REGRESSION") limitations.push("Only one predictor is modelled. Confounders are not adjusted for.");
 
+  // Very small p-values round to 0, which reads as impossible. pValueDisplay is the safe text form.
+  if (typeof output.results.pValue === "number") {
+    const p = output.results.pValue;
+    output.results.pValueDisplay = p < 0.0001 ? "<0.0001" : p.toFixed(4);
+  }
+
   return {
     analysisType,
     methodology: {

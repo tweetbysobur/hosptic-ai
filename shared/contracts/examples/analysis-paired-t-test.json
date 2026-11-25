@@ -1,0 +1,111 @@
+{
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "c159ac87-3312-48e8-8f88-9353b1a6e324",
+      "status": "COMPLETED",
+      "question": "Did systolic blood pressure change from pre to post?",
+      "analysisType": "PAIRED_T_TEST",
+      "datasetId": "a3129a87-22b7-4a0f-8ca7-e480f8cd2f3d",
+      "userId": "01ef2d6c-480a-4f43-9822-ccb5d9043658",
+      "createdAt": "2026-11-25T12:36:58.496Z",
+      "updatedAt": "2026-11-25T12:37:17.942Z",
+      "methodology": {
+        "name": "Paired-samples t-test",
+        "alpha": 0.05,
+        "variables": {
+          "outcome": "Systolic BP Post",
+          "pairedWith": "Systolic BP Pre"
+        },
+        "aiDisclosure": {
+          "note": "Statistics are calculated by deterministic code. The AI selects the method and writes the explanation.",
+          "dataSent": "Question text, column names, inferred types, missing percentages, category labels (up to 15 per column) and aggregate statistics. No row-level values and no columns flagged as personal data.",
+          "provider": "Z.ai",
+          "rationale": "Comparing paired pre and post systolic blood pressure measurements within the same subjects."
+        },
+        "analysisType": "PAIRED_T_TEST",
+        "excludedRows": 0,
+        "missingDataHandling": "Complete-case analysis"
+      },
+      "results": {
+        "pValue": 0,
+        "effectSize": {
+          "name": "Cohen's dz",
+          "value": -1.437637
+        },
+        "sampleSize": {
+          "pairs": 120
+        },
+        "pValueDisplay": "<0.0001",
+        "testStatistic": {
+          "name": "t",
+          "value": -15.748523
+        },
+        "meanDifference": -7.816667,
+        "degreesOfFreedom": 119,
+        "confidenceInterval": {
+          "level": 0.95,
+          "lower": -8.799475,
+          "upper": -6.833858
+        }
+      },
+      "interpretation": null,
+      "assumptions": [
+        "Pairs are assumed to be matched observations. Differences are assumed approximately normal."
+      ],
+      "limitations": [
+        "Results use complete cases only. Rows with a missing value in an analysed variable are excluded.",
+        "These statistics describe association in this dataset. They do not establish causation.",
+        "Unmeasured confounding can affect every association in observational healthcare data.",
+        "Interpretation not generated: The interpretation introduced numbers that are not in the results. Review the statistics directly."
+      ],
+      "visualizationData": {
+        "bins": [
+          {
+            "end": -17.625,
+            "count": 5,
+            "start": -21
+          },
+          {
+            "end": -14.25,
+            "count": 10,
+            "start": -17.625
+          },
+          {
+            "end": -10.875,
+            "count": 24,
+            "start": -14.25
+          },
+          {
+            "end": -7.5,
+            "count": 22,
+            "start": -10.875
+          },
+          {
+            "end": -4.125,
+            "count": 25,
+            "start": -7.5
+          },
+          {
+            "end": -0.75,
+            "count": 23,
+            "start": -4.125
+          },
+          {
+            "end": 2.625,
+            "count": 10,
+            "start": -0.75
+          },
+          {
+            "end": 6,
+            "count": 1,
+            "start": 2.625
+          }
+        ],
+        "type": "histogram",
+        "variable": "paired differences"
+      }
+    }
+  }
+}

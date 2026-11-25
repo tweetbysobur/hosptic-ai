@@ -1,0 +1,17 @@
+{
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "86c1ba09-3556-42dc-939d-6c0938127407",
+      "role": "VIEWER",
+      "status": "ACTIVE",
+      "joinedAt": "2026-11-25T12:37:18.494Z",
+      "user": {
+        "id": "3d8c1d49-abe4-451b-bdcd-825cd9ad53e3",
+        "fullName": "Nurse Person",
+        "email": "user-14958833e1@example.test"
+      }
+    }
+  }
+}

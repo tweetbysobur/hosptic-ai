@@ -1,0 +1,294 @@
+{
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "a3129a87-22b7-4a0f-8ca7-e480f8cd2f3d",
+      "name": "Synthetic maternity cohort",
+      "description": null,
+      "originalFileName": "synthetic-maternity.csv",
+      "fileType": "CSV",
+      "fileSize": 5850,
+      "rowCount": 120,
+      "columnCount": 10,
+      "status": "READY",
+      "uploadedById": "01ef2d6c-480a-4f43-9822-ccb5d9043658",
+      "createdAt": "2026-11-25T12:35:44.545Z",
+      "updatedAt": "2026-11-25T12:35:44.545Z",
+      "columns": [
+        {
+          "name": "Patient ID",
+          "position": 0,
+          "inferredType": "TEXT",
+          "missingCount": 0,
+          "uniqueCount": 120,
+          "isSensitive": true
+        },
+        {
+          "name": "Maternal Age",
+          "position": 1,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 28,
+          "isSensitive": false
+        },
+        {
+          "name": "BMI",
+          "position": 2,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 87,
+          "isSensitive": false
+        },
+        {
+          "name": "Ward",
+          "position": 3,
+          "inferredType": "CATEGORICAL",
+          "missingCount": 0,
+          "uniqueCount": 3,
+          "isSensitive": false
+        },
+        {
+          "name": "Delivery Mode",
+          "position": 4,
+          "inferredType": "CATEGORICAL",
+          "missingCount": 0,
+          "uniqueCount": 2,
+          "isSensitive": false
+        },
+        {
+          "name": "Complication",
+          "position": 5,
+          "inferredType": "BOOLEAN",
+          "missingCount": 0,
+          "uniqueCount": 2,
+          "isSensitive": false
+        },
+        {
+          "name": "Length of Stay",
+          "position": 6,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 7,
+          "isSensitive": false
+        },
+        {
+          "name": "Birth Weight",
+          "position": 7,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 115,
+          "isSensitive": false
+        },
+        {
+          "name": "Systolic BP Pre",
+          "position": 8,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 48,
+          "isSensitive": false
+        },
+        {
+          "name": "Systolic BP Post",
+          "position": 9,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 49,
+          "isSensitive": false
+        }
+      ],
+      "quality": {
+        "rowCount": 120,
+        "columnCount": 10,
+        "duplicateRows": 0,
+        "malformedRows": 0,
+        "columns": [
+          {
+            "name": "Patient ID",
+            "inferredType": "TEXT",
+            "missingCount": 0,
+            "missingPct": 0,
+            "uniqueCount": 120,
+            "isSensitive": true,
+            "invalidValues": 0,
+            "outliers": null,
+            "dateFormats": null,
+            "labelVariants": null
+          },
+          {
+            "name": "Maternal Age",
+            "inferredType": "NUMERIC",
+            "missingCount": 0,
+            "missingPct": 0,
+            "uniqueCount": 28,
+            "isSensitive": false,
+            "invalidValues": 0,
+            "outliers": {
+              "count": 1,
+              "lower": 11.5,
+              "upper": 47.5
+            },
+            "dateFormats": null,
+            "labelVariants": null
+          },
+          {
+            "name": "BMI",
+            "inferredType": "NUMERIC",
+            "missingCount": 0,
+            "missingPct": 0,
+            "uniqueCount": 87,
+            "isSensitive": false,
+            "invalidValues": 0,
+            "outliers": {
+              "count": 2,
+              "lower": 16.900000000000006,
+              "upper": 36.099999999999994
+            },
+            "dateFormats": null,
+            "labelVariants": null
+          },
+          {
+            "name": "Ward",
+            "inferredType": "CATEGORICAL",
+            "missingCount": 0,
+            "missingPct": 0,
+            "uniqueCount": 3,
+            "isSensitive": false,
+            "invalidValues": 0,
+            "outliers": null,
+            "dateFormats": null,
+            "labelVariants": []
+          },
+          {
+            "name": "Delivery Mode",
+            "inferredType": "CATEGORICAL",
+            "missingCount": 0,
+            "missingPct": 0,
+            "uniqueCount": 2,
+            "isSensitive": false,
+            "invalidValues": 0,
+            "outliers": null,
+            "dateFormats": null,
+            "labelVariants": []
+          },
+          {
+            "name": "Complication",
+            "inferredType": "BOOLEAN",
+            "missingCount": 0,
+            "missingPct": 0,
+            "uniqueCount": 2,
+            "isSensitive": false,
+            "invalidValues": 0,
+            "outliers": null,
+            "dateFormats": null,
+            "labelVariants": []
+          },
+          {
+            "name": "Length of Stay",
+            "inferredType": "NUMERIC",
+            "missingCount": 0,
+            "missingPct": 0,
+            "uniqueCount": 7,
+            "isSensitive": false,
+            "invalidValues": 0,
+            "outliers": {
+              "count": 0,
+              "lower": -1,
+              "upper": 7
+            },
+            "dateFormats": null,
+            "labelVariants": null
+          },
+          {
+            "name": "Birth Weight",
+            "inferredType": "NUMERIC",
+            "missingCount": 0,
+            "missingPct": 0,
+            "uniqueCount": 115,
+            "isSensitive": false,
+            "invalidValues": 0,
+            "outliers": {
+              "count": 0,
+              "lower": 2094.875,
+              "upper": 4299.875
+            },
+            "dateFormats": null,
+            "labelVariants": null
+          },
+          {
+            "name": "Systolic BP Pre",
+            "inferredType": "NUMERIC",
+            "missingCount": 0,
+            "missingPct": 0,
+            "uniqueCount": 48,
+            "isSensitive": false,
+            "invalidValues": 0,
+            "outliers": {
+              "count": 1,
+              "lower": 104.5,
+              "upper": 172.5
+            },
+            "dateFormats": null,
+            "labelVariants": null
+          },
+          {
+            "name": "Systolic BP Post",
+            "inferredType": "NUMERIC",
+            "missingCount": 0,
+            "missingPct": 0,
+            "uniqueCount": 49,
+            "isSensitive": false,
+            "invalidValues": 0,
+            "outliers": {
+              "count": 1,
+              "lower": 94,
+              "upper": 168
+            },
+            "dateFormats": null,
+            "labelVariants": null
+          }
+        ],
+        "issues": [
+          {
+            "severity": "info",
+            "code": "SENSITIVE_COLUMN",
+            "column": "Patient ID",
+            "message": "Patient ID looks like personal or identifying data and is masked"
+          },
+          {
+            "severity": "info",
+            "code": "POTENTIAL_OUTLIERS",
+            "column": "Maternal Age",
+            "message": "Maternal Age has 1 values outside the 1.5 IQR range"
+          },
+          {
+            "severity": "info",
+            "code": "POTENTIAL_OUTLIERS",
+            "column": "BMI",
+            "message": "BMI has 2 values outside the 1.5 IQR range"
+          },
+          {
+            "severity": "info",
+            "code": "POTENTIAL_OUTLIERS",
+            "column": "Systolic BP Pre",
+            "message": "Systolic BP Pre has 1 values outside the 1.5 IQR range"
+          },
+          {
+            "severity": "info",
+            "code": "POTENTIAL_OUTLIERS",
+            "column": "Systolic BP Post",
+            "message": "Systolic BP Post has 1 values outside the 1.5 IQR range"
+          }
+        ],
+        "recommendations": [
+          "Remove Patient ID from the dataset if the analysis does not need it.",
+          "Review potential outliers in Maternal Age. Confirm they are valid measurements.",
+          "Review potential outliers in BMI. Confirm they are valid measurements.",
+          "Review potential outliers in Systolic BP Pre. Confirm they are valid measurements.",
+          "Review potential outliers in Systolic BP Post. Confirm they are valid measurements."
+        ],
+        "generatedAt": "2026-11-25T12:35:44.539Z"
+      }
+    }
+  }
+}

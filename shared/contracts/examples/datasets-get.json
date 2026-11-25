@@ -1,0 +1,102 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "a3129a87-22b7-4a0f-8ca7-e480f8cd2f3d",
+      "name": "Synthetic maternity cohort",
+      "description": null,
+      "originalFileName": "synthetic-maternity.csv",
+      "fileType": "CSV",
+      "fileSize": 5850,
+      "rowCount": 120,
+      "columnCount": 10,
+      "status": "READY",
+      "uploadedById": "01ef2d6c-480a-4f43-9822-ccb5d9043658",
+      "createdAt": "2026-11-25T12:35:44.545Z",
+      "updatedAt": "2026-11-25T12:35:44.545Z",
+      "columns": [
+        {
+          "name": "Patient ID",
+          "position": 0,
+          "inferredType": "TEXT",
+          "missingCount": 0,
+          "uniqueCount": 120,
+          "isSensitive": true
+        },
+        {
+          "name": "Maternal Age",
+          "position": 1,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 28,
+          "isSensitive": false
+        },
+        {
+          "name": "BMI",
+          "position": 2,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 87,
+          "isSensitive": false
+        },
+        {
+          "name": "Ward",
+          "position": 3,
+          "inferredType": "CATEGORICAL",
+          "missingCount": 0,
+          "uniqueCount": 3,
+          "isSensitive": false
+        },
+        {
+          "name": "Delivery Mode",
+          "position": 4,
+          "inferredType": "CATEGORICAL",
+          "missingCount": 0,
+          "uniqueCount": 2,
+          "isSensitive": false
+        },
+        {
+          "name": "Complication",
+          "position": 5,
+          "inferredType": "BOOLEAN",
+          "missingCount": 0,
+          "uniqueCount": 2,
+          "isSensitive": false
+        },
+        {
+          "name": "Length of Stay",
+          "position": 6,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 7,
+          "isSensitive": false
+        },
+        {
+          "name": "Birth Weight",
+          "position": 7,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 115,
+          "isSensitive": false
+        },
+        {
+          "name": "Systolic BP Pre",
+          "position": 8,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 48,
+          "isSensitive": false
+        },
+        {
+          "name": "Systolic BP Post",
+          "position": 9,
+          "inferredType": "NUMERIC",
+          "missingCount": 0,
+          "uniqueCount": 49,
+          "isSensitive": false
+        }
+      ]
+    }
+  }
+}
