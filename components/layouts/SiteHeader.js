@@ -30,7 +30,7 @@ export default function SiteHeader() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
-          <Button href="/app" variant="ghost" size="sm">Sign In</Button>
+          <Button href="/app" variant="ghost" size="sm" title="Sign-in is not yet available. Opens the demo workspace.">Sign In</Button>
           <Button href="/app" variant="primary" size="sm">Get Started</Button>
         </div>
 

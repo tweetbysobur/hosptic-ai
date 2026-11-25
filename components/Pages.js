@@ -66,7 +66,7 @@ export function DatasetsPage({ datasets, onAnalyse }) {
         <div className="page-head">
           <div>
             <h1>Datasets</h1>
-            <p>Data available to this workspace. Records stay inside the hospital environment.</p>
+            <p>Demonstration datasets for this preview. Connecting hospital data is not yet configured.</p>
           </div>
         </div>
         {datasets.length === 0 && <div className="list"><div className="empty-list">Loading datasets…</div></div>}

@@ -197,8 +197,11 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
                 </div>
               )}
               {error && (
-                <div className="card" role="alert" style={{ padding: 14, display: "flex", gap: 12, alignItems: "center" }}>
-                  <span style={{ flex: 1, fontSize: 14 }}>The analysis couldn&rsquo;t be completed: {error.message}</span>
+                <div className="notice" role="alert">
+                  <div className="notice-body">
+                    <div className="notice-title">This analysis couldn&rsquo;t be completed</div>
+                    <div className="notice-text">{error.message}. Your question is kept, so you can try again.</div>
+                  </div>
                   <button className="btn" onClick={onRetry}><RotateCcw size={14} /> Try again</button>
                 </div>
               )}
