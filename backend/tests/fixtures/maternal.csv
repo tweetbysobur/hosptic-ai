@@ -1,0 +1,17 @@
+patient_name,age,parity,antenatal_visits,hypertension,complication,ward,delivery_mode,birth_weight_kg,admission_date
+Ada A,24,1,5,No,No,A,Vaginal,3.1,2026-01-03
+Bisi B,31,2,4,Yes,Yes,B,Caesarean,2.8,2026-01-05
+Chi C,38,4,2,Yes,Yes,A,Caesarean,2.5,05/01/2026
+Dayo D,19,0,6,No,No,C,Vaginal,3.3,2026-01-07
+Efe E,42,5,1,Yes,Yes,B,Caesarean,2.4,2026-01-09
+Funke F,27,1,5,no,No,A,Vaginal,3.2,2026-01-10
+Gbemi G,33,3,3,No,Yes,C,Vaginal,2.9,2026-01-11
+Hauwa H,22,0,7,No,No,A,Vaginal,3.4,2026-01-12
+Ife I,36,2,4,Yes,No,B,Caesarean,3.0,2026-01-13
+Jumoke J,29,1,5,No,No,C,Vaginal,3.2,2026-01-14
+Kemi K,40,6,2,Yes,Yes,A,Caesarean,2.6,2026-01-15
+Lara L,25,1,6,No,No,B,Vaginal,abc,2026-01-16
+Mojisola M,34,3,3,Yes,Yes,C,Caesarean,2.7,2026-01-17
+Ngozi N,21,0,5,No,No,A,Vaginal,3.5,2026-01-18
+Ngozi N,21,0,5,No,No,A,Vaginal,3.5,2026-01-18
+Ola O,37,4,,Yes,Yes,B,Caesarean,2.6,2026-01-19
