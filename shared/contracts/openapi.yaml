@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Hosptic AI API
-  version: 0.1.0
+  version: 0.2.0
   description: |
     Backend API for Hosptic AI. All responses use the envelope
     `{ "success": true, "data": ... }` or `{ "success": false, "error": { "code", "message", "details?" } }`.
@@ -932,7 +932,8 @@ components:
               properties:
                 name: { type: string }
                 value: { type: number }
-            pValue: { type: number }
+            pValue: { type: number, description: "Rounded to 6 decimals. Very small values become 0." }
+            pValueDisplay: { type: string, example: "<0.0001", description: "Show this to users instead of pValue. Either <0.0001 or four decimals." }
             degreesOfFreedom:
               oneOf:
                 - type: number

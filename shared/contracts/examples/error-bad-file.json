@@ -1,0 +1,10 @@
+{
+  "status": 422,
+  "body": {
+    "success": false,
+    "error": {
+      "code": "UNPROCESSABLE",
+      "message": "CSV file contains binary data"
+    }
+  }
+}

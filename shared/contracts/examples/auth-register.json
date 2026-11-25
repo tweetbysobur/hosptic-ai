@@ -1,0 +1,20 @@
+{
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "user": {
+        "id": "01ef2d6c-480a-4f43-9822-ccb5d9043658",
+        "fullName": "Ada Okafor",
+        "email": "admin-1795610143393@example.test"
+      },
+      "organization": {
+        "id": "0cff64fe-ab34-47e2-aa7b-6bfffccba8d1",
+        "name": "Example General Hospital",
+        "slug": "example-general-hospital-hxs3pg"
+      },
+      "role": "ORGANIZATION_ADMIN",
+      "accessToken": "<jwt>"
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "a5f8399b-b0a7-46b1-ae91-7c8b6945a671",
+      "status": "COMPLETED",
+      "question": "Is delivery mode associated with complications?",
+      "analysisType": "CHI_SQUARE",
+      "datasetId": "a3129a87-22b7-4a0f-8ca7-e480f8cd2f3d",
+      "userId": "01ef2d6c-480a-4f43-9822-ccb5d9043658",
+      "createdAt": "2026-11-25T12:36:21.875Z",
+      "updatedAt": "2026-11-25T12:36:36.541Z",
+      "methodology": {
+        "name": "Pearson chi-square test of independence",
+        "alpha": 0.05,
+        "variables": {
+          "group": "Delivery Mode",
+          "outcome": "Complication"
+        },
+        "aiDisclosure": {
+          "note": "Statistics are calculated by deterministic code. The AI selects the method and writes the explanation.",
+          "dataSent": "Question text, column names, inferred types, missing percentages, category labels (up to 15 per column) and aggregate statistics. No row-level values and no columns flagged as personal data.",
+          "provider": "Z.ai",
+          "rationale": "Testing association between two categorical variables: delivery mode and complication status."
+        },
+        "analysisType": "CHI_SQUARE",
+        "excludedRows": 0,
+        "missingDataHandling": "Complete-case analysis"
+      },
+      "results": {
+        "pValue": 0.023166,
+        "effectSize": {
+          "name": "Cramer's V",
+          "value": 0.207284
+        },
+        "sampleSize": {
+          "total": 120
+        },
+        "pValueDisplay": "0.0232",
+        "testStatistic": {
+          "name": "chi-square",
+          "value": 5.156019
+        },
+        "contingencyTable": {
+          "rows": [
+            "No",
+            "Yes"
+          ],
+          "columns": [
+            "Caesarean",
+            "Vaginal"
+          ],
+          "observed": [
+            [
+              29,
+              75
+            ],
+            [
+              9,
+              7
+            ]
+          ]
+        },
+        "degreesOfFreedom": 1
+      },
+      "interpretation": "The chi-square test found a statistically significant association between delivery mode and complications (p = 0.0232, alpha = 0.05), with Cramer's V of 0.207284 indicating a modest effect size. Among 120 deliveries, complications were observed in 9 Caesarean and 7 vaginal cases. This association does not establish causation, and results may be affected by unmeasured confounding and the approximate nature of chi-square p-values for sparse tables.",
+      "assumptions": [
+        "Each observation is assumed to belong to exactly one row and one column category."
+      ],
+      "limitations": [
+        "Results use complete cases only. Rows with a missing value in an analysed variable are excluded.",
+        "These statistics describe association in this dataset. They do not establish causation.",
+        "Unmeasured confounding can affect every association in observational healthcare data.",
+        "Chi-square p-values are approximate for sparse tables."
+      ],
+      "visualizationData": {
+        "rows": [
+          "No",
+          "Yes"
+        ],
+        "type": "heatmap",
+        "columns": [
+          "Caesarean",
+          "Vaginal"
+        ],
+        "observed": [
+          [
+            29,
+            75
+          ],
+          [
+            9,
+            7
+          ]
+        ]
+      }
+    }
+  }
+}

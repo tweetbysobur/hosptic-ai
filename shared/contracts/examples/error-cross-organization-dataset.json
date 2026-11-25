@@ -1,0 +1,10 @@
+{
+  "status": 404,
+  "body": {
+    "success": false,
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Dataset not found"
+    }
+  }
+}

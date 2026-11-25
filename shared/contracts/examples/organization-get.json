@@ -1,0 +1,13 @@
+{
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "0cff64fe-ab34-47e2-aa7b-6bfffccba8d1",
+      "name": "Example General Hospital",
+      "slug": "example-general-hospital-hxs3pg",
+      "email": null,
+      "createdAt": "2026-11-25T12:35:43.829Z"
+    }
+  }
+}
