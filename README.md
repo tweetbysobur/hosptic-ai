@@ -45,5 +45,13 @@ End-to-end checks need a running frontend and backend. See `docs/integration/pha
 
 ## Deployment
 
-- Frontend: Vercel project `hosptic`. Every push to `main` deploys to production at https://usehosptic.vercel.app.
-- Backend: not on Vercel. Deploy it separately, then set `HOSPTIC_API_URL` in the Vercel project settings to its public URL.
+Both apps run on Vercel and deploy on every push to `main`.
+
+| Vercel project | Folder | Address |
+| --- | --- | --- |
+| `hosptic` | repository root | https://usehosptic.vercel.app |
+| `hosptic-api` | `backend` | https://usehosptic-api.vercel.app |
+
+- The website forwards `/api/v1/*` to the backend named in `HOSPTIC_API_URL`.
+- The backend uses Neon for PostgreSQL and Cloudflare R2 for uploaded files. Its settings live in the `hosptic-api` environment variables.
+- Database migrations run during each backend build.

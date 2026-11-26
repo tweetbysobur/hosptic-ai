@@ -11,7 +11,7 @@ The product has two parts:
 - **Landing site** (`/`): explains the product and routes visitors to sign up or sign in.
 - **Hosptic Provider** (`/app`): the signed-in workspace for an organisation's own data.
 
-Production: https://usehosptic.vercel.app (frontend on Vercel, deployed from `main`).
+Production: https://usehosptic.vercel.app, with the API at https://usehosptic-api.vercel.app. Both run on Vercel and deploy from `main`.
 
 ## 2. Problem
 
@@ -110,7 +110,7 @@ These are what to measure. No targets are set yet.
 
 ## 10. Open questions
 
-1. Deployment: the frontend is live at https://usehosptic.vercel.app. The backend still needs a public host, then `HOSPTIC_API_URL` set in Vercel to that host.
+1. Deployment: done. Website and API run on Vercel, with Neon for the database and Cloudflare R2 for files.
 2. Logout revokes the refresh token, but the access token stays valid for up to 15 minutes. Is that acceptable?
 3. The complete list of backend error codes, especially for suspended members, rate limits and refresh failures.
 4. Conversations: the backend stores analyses but has no conversation or thread resource. Should threads stay on the device, or get a backend model?
