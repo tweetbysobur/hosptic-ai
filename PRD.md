@@ -59,7 +59,10 @@ Non-goals (for now):
 - First use: an empty state that leads with Upload dataset.
 - Upload: CSV or XLSX, checked in the browser first, then validated and profiled by the backend. The upload result shows rows, columns and data quality notes.
 - Ask questions about an uploaded dataset in plain language. The backend chooses the method, computes the statistics and explains them. Starter questions are built from the dataset's own columns.
-- Ask for a report after an analysis to create a PDF, listed under Reports and downloadable by the organisation.
+- The selected dataset shows its rows and the columns that can be analysed. Columns that look like personal data are listed as excluded.
+- While an analysis runs, the workspace shows the three backend steps and the elapsed time. Errors are shown by kind: question too short, question the dataset cannot answer, dataset missing, session ended, rate limit, timeout or service unreachable. Each comes with the one action that helps.
+- After each answer, next questions are suggested from the dataset's own columns, skipping questions already asked.
+- Each analysis has a Create PDF report button. Typing a report request also works. Reports are listed under Reports and downloadable by the organisation.
 - Datasets can be deleted by roles allowed to upload. Conversations stay in the browser, because the backend has no conversation resource.
 - Organisation name, initials and role come from the session.
 
@@ -90,6 +93,7 @@ If the backend cannot produce a checked explanation, the answer shows the statis
 | 1b | Honest live workspace, dataset upload, dashboard refinement | Done |
 | 2 | Ask questions on uploaded data, render backend charts, PDF reports, dataset deletion | Done |
 | 2b | Dataset preview and quality report screens. Retry failed analyses with `POST /analysis/{id}/retry` | Next |
+| 2c | Linked follow-ups (needs a backend conversation or context field), line and pie charts (need new `visualizationData` types) | Needs backend |
 | 4 | Member management, and an organisation picker for users in several organisations | Planned |
 
 ## 8. Privacy and security requirements

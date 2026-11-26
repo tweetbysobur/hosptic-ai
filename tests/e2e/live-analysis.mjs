@@ -63,10 +63,15 @@ try {
   await page.waitForSelector(".starter", { timeout: 15000 });
   const starters = await page.$$eval(".starter-q", (els) => els.map((e) => e.textContent));
   check("starter questions come from the dataset's own columns", starters.some((q) => /length_of_stay|ward|age/.test(q)), starters.join(" | "));
+  const context = await page.textContent(".ds-context");
+  check("selected dataset shows its name, rows and columns", context.includes("Admissions 2025") && context.includes("150 rows") && context.includes("length_of_stay"), context);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/a3-new-analysis.png` });
 
   await page.fill("#ask", "Does length_of_stay differ by ward?");
   await page.keyboard.press("Enter");
+  await page.waitForSelector(".progress-card", { timeout: 10000 });
+  check("analysis shows a progress state with its steps", (await page.$$(".progress-steps li")).length === 3);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/a4a-progress.png` });
   await page.waitForSelector(".resp-headline", { timeout: 120000 });
   await page.waitForTimeout(800);
   const headline = await page.textContent(".resp-headline");
@@ -77,10 +82,33 @@ try {
   await page.waitForTimeout(300);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/a4-answer.png` });
 
+  const next = await page.$$eval(".resp .followups .chip", (els) => els.map((e) => e.textContent));
+  check("next questions come from the dataset and skip the one asked", next.length >= 1 && !next.includes("Does length_of_stay differ by ward?"), next.join(" | "));
+
+  // Follow-up on the same dataset, from a suggested question.
+  await page.locator(".resp .followups .chip").first().click();
+  await page.waitForFunction(() => document.querySelectorAll(".resp-headline").length >= 2, null, { timeout: 120000 });
+  check("follow-up adds a second answer to the same conversation", (await page.$$(".resp")).length === 2);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/a4b-follow-up.png` });
+
+  // Too-short question: the rephrase state, without a request.
+  await page.fill("#ask", "ward");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector(".analysis-error", { timeout: 10000 });
+  const invalid = await page.textContent(".analysis-error");
+  check("a too-short question shows the rephrase state", invalid.includes("more detail") && (await page.$$(".analysis-error button")).length === 1, invalid);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/a4c-invalid.png` });
+
+  const firstAnswer = page.locator(".resp").first();
+  await firstAnswer.locator("button", { hasText: "Create PDF report" }).click();
+  await page.waitForSelector(".report-card", { timeout: 60000 });
+  check("report button produces a PDF report card", (await page.textContent(".report-card")).includes("PDF report"));
+  check("the analysis now shows its saved report", (await firstAnswer.locator(".report-action").textContent()).includes("saved under Reports"));
+
   await page.fill("#ask", "Generate a report of this analysis");
   await page.keyboard.press("Enter");
-  await page.waitForSelector(".report-card", { timeout: 60000 });
-  check("report request produces a PDF report card", (await page.textContent(".report-card")).includes("PDF report"));
+  await page.waitForFunction(() => document.querySelectorAll(".report-card").length >= 2, null, { timeout: 60000 });
+  check("typing a report request still works", true);
 
   await page.click(".sb-link:has-text('Reports')");
   await page.waitForSelector(".row-title", { timeout: 15000 });

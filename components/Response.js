@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDown, FlaskConical, FileText, Download } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, FlaskConical, FileText, Download, FilePlus2, Loader2 } from "lucide-react";
 import Chart from "./Chart";
 import { plural } from "@/lib/format";
 
@@ -87,7 +88,40 @@ function FragmentPair({ dt, dd }) {
   return (<><dt>{dt}</dt><dd>{dd}</dd></>);
 }
 
-export default function Response({ response, onAsk, onOpenReport, onDownloadReport }) {
+// One PDF report per analysis. Uses an existing report when the organisation already made one.
+function ReportAction({ response, existing, onCreate, onDownload }) {
+  const [state, setState] = useState({ status: "idle", report: null, message: "" });
+  const report = state.report || existing;
+  if (report) {
+    return (
+      <div className="report-action">
+        <span className="report-action-text"><FileText size={15} strokeWidth={1.75} /> PDF report saved under Reports</span>
+        <button type="button" className="btn" onClick={() => onDownload?.(report)}><Download size={14} /> Download</button>
+      </div>
+    );
+  }
+  if (!onCreate) return null;
+  const create = async () => {
+    setState({ status: "creating", report: null, message: "" });
+    try {
+      const r = await onCreate(response);
+      setState({ status: "done", report: r, message: "" });
+    } catch (e) {
+      setState({ status: "error", report: null, message: e.message || "The report could not be generated" });
+    }
+  };
+  return (
+    <div className="report-action">
+      <button type="button" className="btn" onClick={create} disabled={state.status === "creating"}>
+        {state.status === "creating" ? <Loader2 size={14} className="spin" /> : <FilePlus2 size={14} />}
+        {state.status === "creating" ? "Creating PDF report…" : "Create PDF report"}
+      </button>
+      {state.status === "error" && <span className="report-action-error" role="alert">{state.message}.</span>}
+    </div>
+  );
+}
+
+export default function Response({ response, onAsk, onOpenReport, onDownloadReport, onCreateReport = null, existingReport = null }) {
   const r = response;
   return (
     <article className="resp" aria-label="Analysis">
@@ -132,6 +166,10 @@ export default function Response({ response, onAsk, onOpenReport, onDownloadRepo
 
       {/* Layer 5: technical details */}
       <Technical technical={r.technical} />
+
+      {r.type === "analysis" && r.analysisId && (
+        <ReportAction response={r} existing={existingReport} onCreate={onCreateReport} onDownload={onDownloadReport} />
+      )}
 
       {/* Layer 6: follow-up suggestions */}
       {r.followUps?.length > 0 && (

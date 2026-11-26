@@ -200,3 +200,48 @@ table.ds-table tbody tr:hover { background: var(--bg); }
 .art-pillar { fill: #ffe1e8; }
 .art-cross rect { fill: #f6cdd7; }
 @media (prefers-reduced-motion: reduce) { .pulse-trace { animation: none; stroke-dashoffset: 640; } }
+
+/* ---------------------------------------------------- analysis workspace */
+/* Selected dataset, shown above the suggested questions. */
+.ds-context { margin-top: 28px; padding: 16px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.ds-context-head { display: flex; align-items: center; gap: 12px; }
+.ds-context-icon { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--brand-soft); color: var(--brand-ink); }
+.ds-context-title { flex: 1; min-width: 0; }
+.ds-context-name { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-context-meta { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; }
+.ds-context-change { height: 30px; font-size: 13px; }
+.ds-context-cols { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.ds-context-cols li { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px; border-radius: 999px; background: var(--sunken); font-size: 12.5px; max-width: 100%; }
+.ds-context-cols .col-name { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-context-cols .col-type { color: var(--ink-3); font-size: 11.5px; }
+.ds-context-cols .col-more { color: var(--ink-3); background: transparent; }
+.ds-context-note { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; font-size: 12.5px; color: var(--ink-3); }
+.starter-label { margin-top: 24px; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink-3); }
+.ds-context + .starter-label + .starter-grid { margin-top: 10px; }
+
+/* Analysis in progress: the plan the backend follows, with elapsed time. */
+.progress-card { padding: 18px 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); max-width: 560px; }
+.progress-head { display: flex; align-items: center; gap: 10px; }
+.progress-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.progress-time { font-size: 12.5px; color: var(--ink-3); }
+.progress-steps { margin: 14px 0 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 8px; }
+.progress-steps li { counter-increment: step; display: flex; gap: 10px; font-size: 13.5px; color: var(--ink-2); }
+.progress-steps li::before { content: counter(step); flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; background: var(--sunken); color: var(--ink-3); font-size: 11.5px; font-weight: 600; }
+.progress-note { margin: 14px 0 0; font-size: 12.5px; color: var(--ink-3); }
+
+/* Errors: title, reason and the one action that helps. */
+.analysis-error { align-items: flex-start; }
+.notice-actions { display: flex; gap: 8px; flex: none; }
+.error-suggestions { margin-top: 12px; }
+@media (max-width: 640px) { .notice-actions { width: 100%; } }
+
+/* Report action under each analysis. */
+.report-action { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; }
+.report-action-text { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--ink-2); }
+.report-action-error { font-size: 13px; color: var(--brand-ink); }
+.spin { animation: spin 900ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Follow-up context note under the composer. */
+.composer-note { max-width: 760px; margin: 8px auto 0; padding: 0 4px; font-size: 12px; color: var(--ink-3); text-align: center; }
+@media (max-width: 640px) { .composer-note { text-align: left; } }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, Plus, X, Check, Variable, Pencil, Trash2, ChartNoAxesColumn, TrendingUp, Search, GitCompareArrows, ChartScatter, RotateCcw } from "lucide-react";
+import { ArrowUp, Plus, X, Check, Variable, Pencil, Trash2, ChartNoAxesColumn, TrendingUp, Search, GitCompareArrows, ChartScatter, Database, ShieldCheck } from "lucide-react";
+import { AnalysisProgress, AnalysisError } from "./live/AnalysisStates";
 import Response from "./Response";
 import { useConfirm } from "./ui/ConfirmDialog";
 import { titleFrom } from "@/lib/store";
@@ -11,7 +12,7 @@ const STARTER_ICONS = { compare: GitCompareArrows, distribution: ChartNoAxesColu
 
 const TYPE_SHORT = { numeric: "123", binary: "y/n", categorical: "abc", date: "date", text: "txt" };
 
-export default function Workspace({ conversation, datasets, selectedDatasets, onDatasetsChange, onAsk, pending, error, onRetry, onRename, onDelete, onOpenReport, onDownloadReport, ready, preview = false, singleDataset = false, datasetsLoaded = true, onOpenDatasets = null }) {
+export default function Workspace({ conversation, datasets, selectedDatasets, onDatasetsChange, onAsk, pending, error, onRetry, onRename, onDelete, onOpenReport, onDownloadReport, onCreateReport = null, reports = [], ready, preview = false, singleDataset = false, datasetsLoaded = true, onOpenDatasets = null }) {
   const confirm = useConfirm();
   const [text, setText] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -66,7 +67,13 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
   };
 
   const primaryDs = selectedDatasets[0] || null;
-  const starters = (dsById[primaryDs]?.starters || []).map((st) => ({ ...st, icon: STARTER_ICONS[st.icon] || Search }));
+  const primary = dsById[primaryDs] || null;
+  const starters = (primary?.starters || []).map((st) => ({ ...st, icon: STARTER_ICONS[st.icon] || Search }));
+  // Next questions: the dataset's own column-based questions that have not been asked yet.
+  const asked = new Set(messages.filter((m) => m.role === "user").map((m) => m.text.trim().toLowerCase()));
+  const nextQuestions = starters.map((st) => st.q).filter((q) => !asked.has(q.toLowerCase())).slice(0, 3);
+  const lastAnalysisId = [...messages].reverse().find((m) => m.role === "assistant" && m.response?.type === "analysis")?.id;
+  const reportFor = (analysisId) => reports.find((r) => r.analysisId === analysisId) || null;
 
   const composer = (
     <div className="composer-wrap">
@@ -122,6 +129,9 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
           </button>
         </div>
       </div>
+      {messages.length > 0 && primary && (
+        <p className="composer-note">Each question is analysed on its own against {primary.name}. Name the columns you mean in follow-ups.</p>
+      )}
     </div>
   );
 
@@ -161,6 +171,8 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
               <p className="lead">
                 Ask in plain language. Hosptic runs the analysis, explains what it found and shows the evidence, with full statistical detail when you need it.
               </p>
+              {primary && <DatasetContext dataset={primary} onChange={() => setPickerOpen(true)} canChange={datasets.length > 1} />}
+              {starters.length > 0 && <div className="starter-label">Suggested for this dataset</div>}
               <div className="starter-grid">
                 {starters.map((s) => (
                   <button key={s.q} className="starter" onClick={() => submit(s.q)} disabled={!ready}>
@@ -180,23 +192,27 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
                   i === 0 && conversation && titleFrom(m.text) === conversation.title ? null :
                   <div className="msg-user" key={m.id}>{m.text}</div>
                 ) : (
-                  <Response key={m.id} response={m.response} onAsk={(q) => submit(q)} onOpenReport={onOpenReport} onDownloadReport={onDownloadReport} />
+                  <Response
+                    key={m.id}
+                    response={m.id === lastAnalysisId && !pending ? { ...m.response, followUps: nextQuestions } : m.response}
+                    onAsk={(q) => submit(q)}
+                    onOpenReport={onOpenReport}
+                    onDownloadReport={onDownloadReport}
+                    onCreateReport={onCreateReport}
+                    existingReport={m.response?.analysisId ? reportFor(m.response.analysisId) : null}
+                  />
                 )
               )}
-              {pending && (
-                <div className="thinking" role="status">
-                  <span className="pulse"><span /><span /><span /></span>
-                  Analysing {pending.datasetIds.map((id) => dsById[id]?.name || id).join(" and ")}. This can take up to a minute.
-                </div>
-              )}
+              {pending && <AnalysisProgress datasetName={pending.datasetIds.map((id) => dsById[id]?.name || id).join(" and ")} />}
               {error && (
-                <div className="notice" role="alert">
-                  <div className="notice-body">
-                    <div className="notice-title">This analysis couldn&rsquo;t be completed</div>
-                    <div className="notice-text">{error.message}. Your question is kept, so you can try again.</div>
-                  </div>
-                  <button className="btn" onClick={onRetry}><RotateCcw size={14} /> Try again</button>
-                </div>
+                <AnalysisError
+                  error={error}
+                  onRetry={onRetry}
+                  onRephrase={() => taRef.current?.focus()}
+                  onChooseDataset={() => setPickerOpen(true)}
+                  suggestions={nextQuestions}
+                  onAsk={(q) => submit(q)}
+                />
               )}
             </div>
           </div>
@@ -208,6 +224,41 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
         <VariablePanel datasets={selectedDatasets.map((id) => dsById[id]).filter(Boolean)} onPick={insertVariable} onClose={() => setVarsOpen(false)} />
       )}
     </div>
+  );
+}
+
+const TYPE_LABEL = { numeric: "Number", binary: "Yes / no", categorical: "Category", date: "Date", text: "Text" };
+
+// What the selected dataset holds, shown before the first question so suggestions make sense.
+function DatasetContext({ dataset, onChange, canChange }) {
+  const vars = dataset.variables || [];
+  const shown = vars.slice(0, 10);
+  const hidden = (dataset.sensitiveColumns || []).length;
+  return (
+    <section className="ds-context" aria-label="Selected dataset">
+      <div className="ds-context-head">
+        <span className="ds-context-icon"><Database size={16} strokeWidth={1.75} /></span>
+        <div className="ds-context-title">
+          <div className="ds-context-name">{dataset.name}</div>
+          <div className="ds-context-meta tnum">
+            {dataset.rows.toLocaleString()} rows · {vars.length} {vars.length === 1 ? "column" : "columns"} you can ask about{dataset.fileType ? ` · ${dataset.fileType}` : ""}
+          </div>
+        </div>
+        {canChange && <button type="button" className="btn ghost ds-context-change" onClick={onChange}>Change</button>}
+      </div>
+      <ul className="ds-context-cols">
+        {shown.map((v) => (
+          <li key={v.key} title={v.missing ? `${v.missing} missing values` : undefined}>
+            <span className="col-name">{v.label}</span>
+            <span className="col-type">{TYPE_LABEL[v.type] || v.type}</span>
+          </li>
+        ))}
+        {vars.length > shown.length && <li className="col-more">+{vars.length - shown.length} more</li>}
+      </ul>
+      {hidden > 0 && (
+        <p className="ds-context-note"><ShieldCheck size={13} strokeWidth={1.75} /> {hidden} {hidden === 1 ? "column looks" : "columns look"} like personal data and {hidden === 1 ? "is" : "are"} excluded from analysis.</p>
+      )}
+    </section>
   );
 }
 

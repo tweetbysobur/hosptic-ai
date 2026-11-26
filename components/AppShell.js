@@ -153,7 +153,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
         updatedAt: new Date().toISOString(),
       }));
     } catch (e) {
-      setError({ conversationId: id, message: e.message || "Something went wrong", retry: message });
+      setError({ conversationId: id, message: e.message || "Something went wrong", kind: e.kind || "failed", retry: message });
     } finally {
       setPending(null);
       inFlight.current = false;
@@ -165,6 +165,19 @@ function WorkspaceShell({ adapter = liveAdapter }) {
     const { conversationId, retry: text } = error;
     updateConversation(conversationId, (c) => ({ ...c, messages: c.messages.slice(0, -1) }));
     setTimeout(() => ask(text), 0);
+  };
+
+  // Creates the PDF report for one analysis and adds it to that conversation. Errors go back to the
+  // caller, so the button can say what went wrong next to the analysis it belongs to.
+  const createReport = async (conversationId, analysis) => {
+    const response = await adapter.createReport(analysis);
+    loadReports();
+    updateConversation(conversationId, (c) => ({
+      ...c,
+      messages: [...c.messages, { id: uid(), role: "assistant", response, at: new Date().toISOString() }],
+      updatedAt: new Date().toISOString(),
+    }));
+    return response.report;
   };
 
   const downloadReport = async (report) => {
@@ -263,6 +276,8 @@ function WorkspaceShell({ adapter = liveAdapter }) {
             onDelete={() => active && deleteConversation(active.id)}
             onOpenReport={openReport}
             onDownloadReport={downloadReport}
+            onCreateReport={adapter.createReport && permissions.generateReports !== false && active ? (analysis) => createReport(active.id, analysis) : null}
+            reports={reports}
             ready={ready}
           />
         ))}
