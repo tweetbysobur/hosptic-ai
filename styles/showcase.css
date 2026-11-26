@@ -99,3 +99,65 @@ table.data tr.hl td:first-child { box-shadow: inset 3px 0 0 var(--brand); font-w
   .live-steps { grid-template-columns: 1fr; gap: 18px; margin-top: 32px; }
   .live-empty h1 { font-size: 26px; }
 }
+
+/* ---------------------------------------------------------------- premium polish: type, radii, cards */
+
+/* One radius scale for the workspace: controls 8px, cards 12px, dialogs 16px. */
+:root { --radius: 12px; --radius-sm: 8px; --shadow-card: 0 1px 2px rgba(37, 42, 52, 0.04), 0 1px 1px rgba(37, 42, 52, 0.02); }
+.btn { border-radius: 9px; height: 34px; padding: 0 14px; font-size: 13.5px; }
+.btn-lg { height: 42px; padding: 0 18px; font-size: 14.5px; border-radius: 10px; }
+.card, .list { box-shadow: var(--shadow-card); }
+
+/* Type scale: page title 28, section 15, body 14.5, meta 13. Secondary text uses the darker grey for contrast. */
+.page-inner { max-width: 1040px; padding: 40px 32px 56px; }
+.page-head { align-items: center; margin-bottom: 24px; gap: 20px; }
+.page-head h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.022em; line-height: 1.2; }
+.page-head p { color: var(--ink-2); font-size: 14.5px; margin-top: 4px; }
+.row-meta, .sb-empty, .empty-list { color: var(--ink-2); }
+@media (max-width: 640px) {
+  .page-inner { padding: 24px 16px 40px; }
+  .page-head h1 { font-size: 24px; }
+}
+
+/* Sidebar identity */
+.sb-org { padding: 10px 12px; box-shadow: var(--shadow-card); }
+.sb-org-avatar { width: 32px; height: 32px; border-radius: 9px; font-size: 12px; letter-spacing: 0.01em; }
+.sb-org-name { font-size: 13.5px; font-weight: 600; }
+.sb-org-meta { color: var(--ink-2); font-size: 12px; }
+.sb-link { height: 36px; font-size: 14px; border-radius: 8px; }
+.sb-link[aria-current="page"] { font-weight: 600; }
+.sb-foot { padding: 12px 16px; gap: 12px; }
+.sb-user { flex: 1; min-width: 0; }
+.sb-user .sb-user-name { font-size: 13.5px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
+.sb-user .sb-user-email { font-size: 12px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; }
+
+/* Datasets table */
+.ds-table-card { overflow: hidden; }
+table.ds-table { font-size: 14px; }
+table.ds-table th { background: var(--surface); color: var(--ink-2); font-size: 12.5px; font-weight: 600; padding: 12px 20px; }
+table.ds-table td { padding: 14px 20px; vertical-align: middle; border-bottom-color: var(--border); }
+table.ds-table tbody tr { transition: background 120ms; }
+table.ds-table tbody tr:hover { background: var(--bg); }
+.ds-name { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--ink); }
+.ds-name svg { color: var(--ink-2); flex: none; }
+.ds-desc { margin: 2px 0 0 26px; color: var(--ink-2); font-size: 13px; white-space: normal; max-width: 48ch; }
+.ds-muted { color: var(--ink-2); }
+.status-dot.pending::before { background: var(--ink-3); }
+@media (max-width: 640px) {
+  table.ds-table th, table.ds-table td { padding: 12px 14px; }
+}
+
+/* First-use empty state */
+.live-empty h1 { font-size: 34px; letter-spacing: -0.028em; }
+.live-empty .lead { font-size: 16.5px; line-height: 1.6; }
+.live-steps h2 { font-size: 15.5px; }
+.live-steps p { font-size: 14.5px; }
+
+/* Dialogs */
+.modal { border-radius: 16px; padding: 28px; }
+.modal-title { font-size: 19px; }
+.status-dot { vertical-align: middle; line-height: 1.4; }
+@media (max-width: 640px) {
+  .page-head .spacer { display: none; }
+  .page-head .btn-lg { width: 100%; justify-content: center; }
+}

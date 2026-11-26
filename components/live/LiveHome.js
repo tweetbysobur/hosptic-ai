@@ -64,24 +64,44 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, upload,
         <div className="page-head">
           <div>
             <h1>Datasets</h1>
-            <p>Your organisation&rsquo;s datasets. Asking questions about them is being connected.</p>
+            <p>{plural(datasets.length, "dataset", "datasets")} in your organisation. Asking questions about them is coming soon.</p>
           </div>
           <div className="spacer" />
           {uploadButton}
         </div>
-        <div className="list">
-          {datasets.map((d) => (
-            <div className="row" key={d.id}>
-              <FileSpreadsheet size={18} strokeWidth={1.75} color="var(--ink-3)" />
-              <div className="row-main">
-                <div className="row-title">{d.name}</div>
-                <div className="row-meta tnum">
-                  {plural(d.rowCount ?? 0, "row", "rows")} · {plural(d.columnCount ?? 0, "column", "columns")} · {d.fileType} {fileSizeLabel(d.fileSize)} · {relativeTime(d.createdAt)}
-                </div>
-              </div>
-              <span className={`status-dot ${d.status === "FAILED" ? "failed" : ""}`}>{STATUS[d.status] || d.status}</span>
-            </div>
-          ))}
+        <div className="card ds-table-card">
+          <div className="table-scroll">
+            <table className="data ds-table">
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col" className="r">Rows</th>
+                  <th scope="col" className="r hide-sm">Columns</th>
+                  <th scope="col" className="hide-sm">File</th>
+                  <th scope="col" className="hide-sm">Uploaded</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {datasets.map((d) => (
+                  <tr key={d.id}>
+                    <td>
+                      <div className="ds-name">
+                        <FileSpreadsheet size={16} strokeWidth={1.75} aria-hidden="true" />
+                        <span>{d.name}</span>
+                      </div>
+                      {d.description && <div className="ds-desc">{d.description}</div>}
+                    </td>
+                    <td className="r">{(d.rowCount ?? 0).toLocaleString()}</td>
+                    <td className="r hide-sm">{(d.columnCount ?? 0).toLocaleString()}</td>
+                    <td className="hide-sm ds-muted">{d.fileType} · {fileSizeLabel(d.fileSize)}</td>
+                    <td className="hide-sm ds-muted" title={d.createdAt ? new Date(d.createdAt).toLocaleString() : undefined}>{relativeTime(d.createdAt)}</td>
+                    <td><span className={`status-dot ${d.status === "FAILED" ? "failed" : d.status === "PROCESSING" ? "pending" : ""}`}>{STATUS[d.status] || d.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </>
     );

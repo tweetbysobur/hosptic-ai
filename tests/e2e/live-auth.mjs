@@ -96,8 +96,8 @@ try {
   const uploadSummary = await page.textContent(".modal-body");
   check("upload confirms rows and columns from the backend", uploadSummary.includes("40 rows") && uploadSummary.includes("4 columns"), uploadSummary);
   await page.click(".modal button:has-text('Done')");
-  await page.waitForSelector(".row-title", { timeout: 15000 });
-  check("uploaded dataset appears in the workspace list", (await page.textContent(".row-title")) === "ward-stays");
+  await page.waitForSelector(".ds-name span", { timeout: 15000 });
+  check("uploaded dataset appears in the workspace list", (await page.textContent(".ds-name span")) === "ward-stays");
 
   // Wrong file type is caught before upload
   apiRequests.length = 0;

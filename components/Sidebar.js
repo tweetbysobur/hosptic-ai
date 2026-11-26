@@ -51,28 +51,28 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
       </button>}
 
       <nav className="sb-nav">
-        {NAV.map((n) => (
-          <button key={n.id} className="sb-link" aria-current={view === n.id ? "page" : undefined} onClick={() => onNavigate(n.id)} title={n.label}>
+        {NAV.filter((n) => canAnalyse || n.id === "datasets").map((n) => (
+          <button key={n.id} className="sb-link" aria-current={view === n.id || (!canAnalyse && n.id === "datasets") ? "page" : undefined} onClick={() => onNavigate(n.id)} title={n.label}>
             <n.icon size={16} strokeWidth={1.75} />
             <span className="hide-collapsed">{n.label}</span>
           </button>
         ))}
       </nav>
 
-      <div className="sb-recent hide-collapsed" aria-label="Recent analyses" role="group">
-        {recent.length === 0 && <div className="sb-empty">{mode === "live" ? "Analyses will appear here once asking questions is connected." : "Your analyses will appear here."}</div>}
+      {canAnalyse && <div className="sb-recent hide-collapsed" aria-label="Recent analyses" role="group">
+        {recent.length === 0 && <div className="sb-empty">Your analyses will appear here.</div>}
         {recent.map((c) => (
           <button key={c.id} className="sb-item" aria-current={view === "chat" && c.id === activeId ? "true" : undefined} onClick={() => onOpenConversation(c.id)} title={c.title}>
             {c.title}
           </button>
         ))}
-      </div>
-      {collapsed && <div style={{ flex: 1 }} />}
+      </div>}
+      <div style={{ flex: 1 }} />
 
       <div className="sb-foot">
         <div className="sb-user hide-collapsed">
-          <div>Signed in</div>
-          <div>{workspace.user || workspace.meta}</div>
+          <div className="sb-user-name">{workspace.user || "Signed in"}</div>
+          {workspace.email && <div className="sb-user-email">{workspace.email}</div>}
         </div>
         {mode === "live" && <SignOutButton />}
       </div>

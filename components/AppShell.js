@@ -30,7 +30,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   const canAnalyse = adapter.capabilities?.analyse === true;
   const [datasetsStatus, setDatasetsStatus] = useState("loading");
   const [ready, setReady] = useState(false);
-  const [view, setView] = useState("chat");
+  const [view, setView] = useState(adapter.capabilities?.analyse === false ? "datasets" : "chat");
   const [collapsed, setCollapsed] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [conversations, setConversations] = useState([]);
@@ -45,7 +45,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
 
   const session = useSession();
   const identity = adapter.mode === "live" && session
-    ? { name: session.organization.name, meta: ROLE_LABELS[session.role] || "Member", user: session.user.fullName }
+    ? { name: session.organization.name, meta: ROLE_LABELS[session.role] || "Member", user: session.user.fullName, email: session.user.email }
     : adapter.identity;
 
   const storageKeys = adapter.storage;
@@ -85,19 +85,19 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   const newAnalysis = useCallback(() => {
     setActiveId(null);
     setDraftDatasets(DEFAULT_DATASETS);
-    setView("chat");
+    setView(adapter.capabilities?.analyse === false ? "datasets" : "chat");
     setDrawer(false);
     setError(null);
-  }, []);
+  }, [adapter]);
 
   useEffect(() => {
     const onKey = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); newAnalysis(); }
+      if (canAnalyse && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); newAnalysis(); }
       if (e.key === "Escape") setDrawer(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [newAnalysis]);
+  }, [newAnalysis, canAnalyse]);
 
   const openConversation = (id) => { setActiveId(id); setView("chat"); setDrawer(false); setError(null); };
 
