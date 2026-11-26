@@ -1,7 +1,7 @@
 process.env.TF_CPP_MIN_LOG_LEVEL = process.env.TF_CPP_MIN_LOG_LEVEL || "3";
 const Papa = require("papaparse");
 const ExcelJS = require("exceljs");
-const dfd = require("danfojs-node");
+const { ColumnTable } = require("../utils/column-table");
 const { badRequest, unprocessable } = require("../utils/AppError");
 
 const MAX_ROWS = 100000;
@@ -122,8 +122,8 @@ function buildTable(headers, matrix) {
       return typeof value === "string" ? value.trim() : String(value);
     });
   });
-  // Danfo.js holds the tabular data; columns are read from it by name for profiling and analysis.
-  const df = new dfd.DataFrame(data, { columns: headers });
+  // Column store; columns are read by name for profiling and analysis.
+  const df = new ColumnTable(data, { columns: headers });
   return { headers, df, rowCount: data.length, columnCount: headers.length, malformedRows };
 }
 
