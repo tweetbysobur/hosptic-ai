@@ -59,7 +59,7 @@ export default function SessionGate({ children }) {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-canvas" role="status" aria-live="polite">
-      <Logo size={40} title="Hosptic AI" />
+      <Logo size={40} title="Hosptic" />
       <p className="text-sm text-ink-2">Loading your workspace…</p>
     </div>
   );

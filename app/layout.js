@@ -11,11 +11,11 @@ const manrope = Manrope({
 
 export const metadata = {
   title: {
-    default: "Hosptic AI | Healthcare Data. Clearer Insights. Better Decisions.",
-    template: "%s | Hosptic AI",
+    default: "Hosptic | Healthcare Data. Clearer Insights. Better Decisions.",
+    template: "%s | Hosptic",
   },
   description:
-    "Transform complex hospital datasets into meaningful insights. Ask questions, uncover patterns and understand your healthcare data with Hosptic AI.",
+    "Transform complex hospital datasets into meaningful insights. Ask questions, uncover patterns and understand your healthcare data with Hosptic.",
 };
 
 export const viewport = {

@@ -10,7 +10,7 @@ import FinalCta from "@/components/sections/FinalCta";
 export const metadata = {
   title: "Healthcare Data. Clearer Insights. Better Decisions.",
   description:
-    "Transform complex hospital datasets into meaningful insights. Ask questions, uncover patterns and understand your healthcare data with Hosptic AI.",
+    "Transform complex hospital datasets into meaningful insights. Ask questions, uncover patterns and understand your healthcare data with Hosptic.",
 };
 
 export default function HomePage() {

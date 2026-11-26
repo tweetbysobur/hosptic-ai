@@ -8,10 +8,10 @@ export default function SiteFooter() {
       <div className="mx-auto w-full max-w-[1200px] px-5 py-14 sm:px-8">
         <div className="grid gap-12 lg:grid-cols-[1.6fr_repeat(3,1fr)]">
           <div>
-            <Link href="/" className="inline-flex items-center gap-2.5" aria-label="Hosptic AI home">
-              <Logo size={34} title="Hosptic AI" />
+            <Link href="/" className="inline-flex items-center gap-2.5" aria-label="Hosptic home">
+              <Logo size={34} title="Hosptic" />
               <span className="text-[17px] font-extrabold tracking-tight text-ink">
-                Hosptic <span className="font-semibold text-muted">AI</span>
+                Hosptic
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-2">
@@ -34,7 +34,7 @@ export default function SiteFooter() {
         </div>
 
         <div className="mt-14 flex flex-col gap-3 border-t border-line pt-6 text-sm text-ink-2 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Hosptic AI. All rights reserved.</p>
+          <p>© 2026 Hosptic. All rights reserved.</p>
         </div>
       </div>
     </footer>

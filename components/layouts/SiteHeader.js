@@ -14,10 +14,10 @@ export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-canvas/95">
       <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center gap-6 px-5 sm:px-8">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Hosptic AI home" onClick={close}>
-          <Logo size={34} title="Hosptic AI" />
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Hosptic home" onClick={close}>
+          <Logo size={34} title="Hosptic" />
           <span className="text-[17px] font-extrabold tracking-tight text-ink">
-            Hosptic <span className="font-semibold text-muted">AI</span>
+            Hosptic
           </span>
         </Link>
 

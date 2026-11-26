@@ -190,5 +190,13 @@ table.ds-table tbody tr:hover { background: var(--bg); }
   animation: pulse-run 7s linear infinite;
 }
 @keyframes pulse-run { to { stroke-dashoffset: 0; } }
-@media (max-width: 640px) { .pulse-bg { align-items: flex-end; padding-bottom: 1vh; } .pulse-bg svg { height: 140px; } }
+/* Phones and tablets show the brand art above the form instead of the background trace. */
+@media (max-width: 1023px) { .pulse-bg { display: none; } }
+.auth-art { display: none; }
+@media (max-width: 1023px) {
+  .auth-art { display: block; width: 100%; max-width: 340px; margin: 0 auto 28px; }
+  .auth-art svg { display: block; width: 100%; height: auto; }
+}
+.art-pillar { fill: #ffe1e8; }
+.art-cross rect { fill: #f6cdd7; }
 @media (prefers-reduced-motion: reduce) { .pulse-trace { animation: none; stroke-dashoffset: 640; } }

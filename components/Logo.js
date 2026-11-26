@@ -1,4 +1,4 @@
-// Official Hosptic AI logo, used exactly as supplied. Width follows the
+// Official Hosptic logo, used exactly as supplied. Width follows the
 // image's own aspect ratio, so the mark is never stretched or cropped.
 export default function Logo({ className, size = 32, title }) {
   return (

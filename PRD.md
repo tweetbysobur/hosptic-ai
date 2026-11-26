@@ -1,10 +1,10 @@
-# Hosptic AI: Product Requirements
+# Hosptic: Product Requirements
 
 Status: living document. It describes the product as built today, then what comes next. Update it when scope changes.
 
 ## 1. Summary
 
-Hosptic AI lets hospital teams ask questions about their own data in plain language and get answers they can check. Each answer leads with the finding, explains it in plain words, shows the evidence (charts and tables), states the method and its limits, and suggests the next question.
+Hosptic lets hospital teams ask questions about their own data in plain language and get answers they can check. Each answer leads with the finding, explains it in plain words, shows the evidence (charts and tables), states the method and its limits, and suggests the next question.
 
 The product has two parts:
 

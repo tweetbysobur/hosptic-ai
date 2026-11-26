@@ -25,8 +25,8 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
     <aside className="sidebar" aria-label="Main navigation">
       <div className="sb-top">
         <Link href="/" className="sb-brand" title="Back to home">
-          <Logo size={26} title="Hosptic AI" />
-          <div className="sb-brand-name hide-collapsed">Hosptic <span>AI</span></div>
+          <Logo size={26} title="Hosptic" />
+          <div className="sb-brand-name hide-collapsed">Hosptic</div>
         </Link>
         <button className="icon-btn desktop-only" onClick={onToggleCollapse} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
           {collapsed ? <PanelLeftOpen size={17} strokeWidth={1.75} /> : <PanelLeftClose size={17} strokeWidth={1.75} />}
