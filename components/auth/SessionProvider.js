@@ -10,7 +10,7 @@ import { messageForError, FAILURE } from "@/lib/auth/messages";
 
 const SessionContext = createContext(null);
 
-// The current session, or null outside a protected route (for example in the demo).
+// The current session, or null outside a protected route.
 export function useSession() {
   return useContext(SessionContext);
 }

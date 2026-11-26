@@ -60,46 +60,6 @@ export function ConversationsPage({ conversations, onOpen, onRename, onDelete, o
   );
 }
 
-const TYPE_LABEL = { numeric: "Number", binary: "Yes / no", categorical: "Category", date: "Date" };
-
-export function DatasetsPage({ datasets, onAnalyse }) {
-  return (
-    <div className="page">
-      <div className="page-inner">
-        <div className="page-head">
-          <div>
-            <h1>Datasets</h1>
-            <p>Demonstration datasets for this preview. Connecting hospital data is not yet configured.</p>
-          </div>
-        </div>
-        {datasets.length === 0 && <div className="list"><div className="empty-list">Loading datasets…</div></div>}
-        {datasets.map((d) => (
-          <section className="card ds-card" key={d.id}>
-            <div className="ds-card-head">
-              <div style={{ flex: 1, minWidth: 220 }}>
-                <h2>{d.name}</h2>
-                <p className="desc">{d.description}</p>
-              </div>
-              <button className="btn primary" onClick={() => onAnalyse(d.id)}>Analyse</button>
-            </div>
-            <div className="ds-facts">
-              <span><b>{d.rows.toLocaleString()}</b> {d.unit}</span>
-              <span><b>{d.variables.length}</b> variables</span>
-              <span>Source: <b>{d.source}</b></span>
-              <span>Updated <b>{new Date(d.updated).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</b></span>
-            </div>
-            <div className="var-tags">
-              {d.variables.map((v) => (
-                <span className="var-tag" key={v.key} title={`${TYPE_LABEL[v.type]}${v.unit ? ` · ${v.unit}` : ""}${v.missing ? ` · ${v.missing} missing` : ""}`}>{v.label}</span>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function ReportsPage({ reports, conversations, onOpen, onDownload, onDelete }) {
   const confirm = useConfirm();
   return (

@@ -6,11 +6,10 @@ Status: living document. It describes the product as built today, then what come
 
 Hosptic AI lets hospital teams ask questions about their own data in plain language and get answers they can check. Each answer leads with the finding, explains it in plain words, shows the evidence (charts and tables), states the method and its limits, and suggests the next question.
 
-The product has three parts:
+The product has two parts:
 
-- **Landing site** (`/`): explains the product and routes visitors to sign up, sign in or the demo.
+- **Landing site** (`/`): explains the product and routes visitors to sign up or sign in.
 - **Hosptic Provider** (`/app`): the signed-in workspace for an organisation's own data.
-- **Demo** (`/demo`): the same workspace running on synthetic data, with no account, for presentations and evaluation.
 
 ## 2. Problem
 
@@ -45,7 +44,7 @@ Non-goals (for now):
 
 ### 5.1 Landing site
 - Hero with the product screenshot directly below it, then the introduction, capabilities, how it works, privacy and security, the final call to action, and the footer.
-- Sign In goes to `/login`, Get Started goes to `/register`, Try demo goes to `/demo`.
+- Sign In goes to `/login`, Get Started goes to `/register`.
 
 ### 5.2 Accounts and sessions
 - Registration creates the user, the organisation and its first administrator in one step.
@@ -60,12 +59,7 @@ Non-goals (for now):
 - Asking questions about uploaded datasets is marked **Soon**. It is not connected yet (see section 7).
 - Organisation name, initials and role come from the session.
 
-### 5.4 Demo (`/demo`)
-- The real workspace with two synthetic datasets (maternal outcomes, hospital admissions), three sample conversations with completed analyses, and a sample report.
-- Runs entirely in the browser. It makes no API calls and stores data under separate `hosptic.demo.*` keys.
-- A banner labels it as synthetic on every screen. It can be reset, and it can be switched off with `HOSPTIC_DEMO_ENABLED=false`.
-
-### 5.5 Backend capabilities (available through the API)
+### 5.4 Backend capabilities (available through the API)
 - Organisation, membership and role management, with row-level security in PostgreSQL. A query without an organisation context returns no rows.
 - Dataset upload, preview (personal-data columns masked), quality report and deletion.
 - Analysis: the AI service chooses a method from column names and types only, never row values. The backend validates that choice and computes the statistics itself. Then the AI service explains the computed results, and the explanation is checked against the numbers.
@@ -99,7 +93,7 @@ If the backend cannot produce a checked explanation, the answer shows the statis
 - Organisation isolation is enforced in the database, not only in the application.
 - Columns that look like personal identifiers are masked in previews and never sent to the AI service. Detection currently uses column names only.
 - No secrets in the repository. Configuration lives in the host environment.
-- Signed-in screens never show synthetic data as an organisation's own.
+- Signed-in screens show only the organisation's own data. The landing page screenshot uses sample data and says so.
 - Statistical results describe associations and say so.
 
 ## 9. Measures of success

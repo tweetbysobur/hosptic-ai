@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Upload, FileSpreadsheet, RotateCcw } from "lucide-react";
 import UploadDialog from "./UploadDialog";
 import { plural, fileSizeLabel } from "@/lib/format";
@@ -42,7 +41,6 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, upload,
         </p>
         <div className="live-actions">
           {uploadButton || <p className="live-note">Uploading needs an administrator or researcher role. Ask one of them to add your organisation&rsquo;s first dataset.</p>}
-          <Link href="/demo" className="btn ghost btn-lg">See a sample analysis</Link>
         </div>
         <ol className="live-steps">
           <li>
@@ -55,7 +53,7 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, upload,
           </li>
           <li>
             <h2>Ask questions <span className="soon">Soon</span></h2>
-            <p>Asking questions about your own datasets is being connected. The demo shows how answers will look.</p>
+            <p>Asking questions about your own datasets is being connected.</p>
           </li>
         </ol>
       </div>

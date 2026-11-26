@@ -4,12 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Workspace from "./Workspace";
-import { ConversationsPage, DatasetsPage, ReportsPage, ReportView } from "./Pages";
+import { ConversationsPage, ReportsPage, ReportView } from "./Pages";
 import { loadConversations, saveConversations, loadReports, saveReports, uid, titleFrom, reportToMarkdown, downloadText } from "@/lib/store";
 import { liveAdapter } from "@/lib/workspace/live-adapter";
 import { useSession } from "./auth/SessionProvider";
 import { ROLE_LABELS } from "@/lib/auth/session";
-import DemoBanner from "./demo/DemoBanner";
 import LiveHome from "./live/LiveHome";
 import { ConfirmProvider, useConfirm } from "./ui/ConfirmDialog";
 import { permissionsFor } from "@/lib/auth/session";
@@ -27,6 +26,8 @@ export default function AppShell(props) {
 function WorkspaceShell({ adapter = liveAdapter }) {
   const confirm = useConfirm();
   const isLive = adapter.mode === "live";
+  // Asking questions is shown only once the data source supports it.
+  const canAnalyse = adapter.capabilities?.analyse === true;
   const [datasetsStatus, setDatasetsStatus] = useState("loading");
   const [ready, setReady] = useState(false);
   const [view, setView] = useState("chat");
@@ -49,28 +50,13 @@ function WorkspaceShell({ adapter = liveAdapter }) {
 
   const storageKeys = adapter.storage;
 
-  // Demo workspaces start with completed sample analyses. The seeded flag stops them being
-  // recreated on every visit, so changes a judge makes are kept until they reset the demo.
-  const seedDemo = useCallback(() => {
-    const seed = adapter.seed();
-    saveConversations(seed.conversations, storageKeys.conversations);
-    saveReports(seed.reports, storageKeys.reports);
-    try { window.localStorage.setItem(storageKeys.seeded, "1"); } catch {}
-    return seed;
-  }, [adapter, storageKeys]);
-
   useEffect(() => {
-    let alreadySeeded = true;
-    if (adapter.seed && storageKeys.seeded) {
-      try { alreadySeeded = window.localStorage.getItem(storageKeys.seeded) !== null; } catch { alreadySeeded = false; }
-    }
-    const seeded = adapter.seed && !alreadySeeded ? seedDemo() : null;
-    setConversations(seeded ? seeded.conversations : loadConversations(storageKeys.conversations));
-    setReports(seeded ? seeded.reports : loadReports(storageKeys.reports));
+    setConversations(loadConversations(storageKeys.conversations));
+    setReports(loadReports(storageKeys.reports));
     try { setCollapsed(window.localStorage.getItem("hosptic.sidebar") === "collapsed"); } catch {}
     adapter.purgeLegacy?.();
     setReady(true);
-  }, [adapter, seedDemo, storageKeys]);
+  }, [adapter, storageKeys]);
 
   const loadDatasets = useCallback(() => {
     setDatasetsStatus("loading");
@@ -84,18 +70,6 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   useEffect(() => { if (ready) saveConversations(conversations, storageKeys.conversations); }, [conversations, ready, storageKeys]);
   useEffect(() => { if (ready) saveReports(reports, storageKeys.reports); }, [reports, ready, storageKeys]);
 
-  const resetDemo = async () => {
-    const ok = await confirm({ title: "Reset the demo?", body: "Sample conversations and reports return to their original state. Anything you added in the demo is removed.", confirmLabel: "Reset demo" });
-    if (!ok) return;
-    const seed = seedDemo();
-    setConversations(seed.conversations);
-    setReports(seed.reports);
-    setActiveId(null);
-    setDraftDatasets(DEFAULT_DATASETS);
-    setView("chat");
-    setDrawer(false);
-    setError(null);
-  };
 
   const active = useMemo(() => conversations.find((c) => c.id === activeId) || null, [conversations, activeId]);
 
@@ -221,12 +195,11 @@ function WorkspaceShell({ adapter = liveAdapter }) {
       />
       <div className="scrim" onClick={() => setDrawer(false)} />
       <main className="main">
-        {adapter.mode === "demo" && <DemoBanner onReset={resetDemo} />}
         <div className="topbar">
           <button className="icon-btn" onClick={() => setDrawer(true)} aria-label="Open menu"><Menu size={19} /></button>
           <div className="topbar-title">{mobileTitle}</div>
         </div>
-        {isLive && (view === "chat" || view === "datasets") && (
+        {!canAnalyse && (view === "chat" || view === "datasets") && (
           <LiveHome
             datasets={datasets}
             status={datasetsStatus}
@@ -237,7 +210,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
             heading={view === "chat" ? "home" : "datasets"}
           />
         )}
-        {!isLive && view === "chat" && (
+        {canAnalyse && view === "chat" && (
           <Workspace
             key={activeId || "new"}
             conversation={active}
@@ -257,9 +230,6 @@ function WorkspaceShell({ adapter = liveAdapter }) {
         )}
         {view === "conversations" && (
           <ConversationsPage conversations={conversations} onOpen={openConversation} onRename={renameConversation} onDelete={deleteConversation} onNew={newAnalysis} />
-        )}
-        {!isLive && view === "datasets" && (
-          <DatasetsPage datasets={datasets} onAnalyse={(id) => { newAnalysis(); setDraftDatasets([id]); }} />
         )}
         {view === "reports" && (
           <ReportsPage reports={reports} conversations={conversations} onOpen={openReport} onDownload={downloadReport} onDelete={deleteReport} />

@@ -1,39 +1,4 @@
-/* Workspace additions: demo banner and responsive report card. */
-
-/* Demo mode banner: labels the demo workspace on every screen. */
-.demo-banner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 16px;
-  padding: 9px 16px;
-  background: var(--brand-soft);
-  border-bottom: 1px solid var(--border);
-  box-shadow: inset 3px 0 0 var(--brand);
-  flex: none;
-}
-.demo-banner-text {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--ink-2);
-  min-width: 0;
-}
-.demo-banner-text strong { color: var(--ink); font-weight: 600; }
-.demo-banner-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--brand);
-  flex: none;
-}
-.demo-banner-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-@media (max-width: 640px) {
-  .demo-banner-text { align-items: flex-start; }
-  .demo-banner-dot { margin-top: 6px; }
-}
+/* Workspace additions: responsive report card. */
 
 /* Report card: stack actions below the title on narrow screens. */
 @media (max-width: 640px) {
@@ -90,10 +55,6 @@ table.data tr.hl td:first-child { box-shadow: inset 3px 0 0 var(--brand); font-w
   .composer textarea { padding: 12px 14px 4px; }
   .composer-bar { flex-wrap: nowrap; gap: 6px; }
   .ds-chip-name { max-width: 34vw; }
-  .demo-banner { padding: 8px 12px; gap: 8px; flex-wrap: nowrap; }
-  .demo-banner-text { font-size: 12.5px; }
-  .demo-banner-actions { flex-wrap: nowrap; }
-  .demo-banner .btn { height: 28px; padding: 0 10px; font-size: 12px; }
 }
 
 /* Modal */

@@ -10,7 +10,7 @@ test("plural uses the singular only for exactly one", () => {
 });
 
 test("initials come from the organisation name", () => {
-  assert.equal(initialsFrom("Demo workspace"), "DW");
+  assert.equal(initialsFrom("Hospital workspace"), "HW");
   assert.equal(initialsFrom("Ogun General Hospital"), "OG");
   assert.equal(initialsFrom("The Royal Infirmary"), "RI");
   assert.equal(initialsFrom("Lagoon"), "LA");

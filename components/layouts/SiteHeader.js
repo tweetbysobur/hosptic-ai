@@ -30,7 +30,6 @@ export default function SiteHeader() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 lg:flex">
-          <Button href="/demo" variant="ghost" size="sm">Try demo</Button>
           <Button href="/login" variant="ghost" size="sm">Sign In</Button>
           <Button href="/register" variant="primary" size="sm">Get Started</Button>
         </div>
@@ -55,9 +54,6 @@ export default function SiteHeader() {
                 {l.label}
               </a>
             ))}
-            <a href="/demo" onClick={close} className="rounded-xl px-3 py-3 text-base font-medium text-ink hover:bg-blush">
-              Try demo
-            </a>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <Button href="/login" variant="secondary" size="sm" className="h-11">Sign In</Button>
               <Button href="/register" variant="primary" size="sm" className="h-11">Get Started</Button>

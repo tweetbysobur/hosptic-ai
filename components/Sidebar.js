@@ -14,7 +14,7 @@ const NAV = [
   { id: "reports", label: "Reports", icon: FileText },
 ];
 
-export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate, onNew, conversations, activeId, onOpenConversation, counts, onCloseDrawer, mode = "preview", canAnalyse = true, workspace = { name: "Hospital workspace", meta: "Demonstration data" } }) {
+export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate, onNew, conversations, activeId, onOpenConversation, counts, onCloseDrawer, mode = "preview", canAnalyse = true, workspace = { name: "Hospital workspace", meta: "Member" } }) {
   const recent = conversations.slice(0, 12);
   // The shortcut label is set after mount so server and client render the same text.
   const [shortcut, setShortcut] = useState("Ctrl K");
@@ -71,15 +71,10 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
 
       <div className="sb-foot">
         <div className="sb-user hide-collapsed">
-          <div>{mode === "demo" ? "Demo session" : "Signed in"}</div>
-          <div>{mode === "demo" ? "No account needed" : workspace.user || workspace.meta}</div>
+          <div>Signed in</div>
+          <div>{workspace.user || workspace.meta}</div>
         </div>
         {mode === "live" && <SignOutButton />}
-        {mode === "demo" && (
-          <Link href="/" className="icon-btn" aria-label="Exit demo" title="Exit demo">
-            <Icon name="LogOut" size={16} />
-          </Link>
-        )}
       </div>
     </aside>
   );

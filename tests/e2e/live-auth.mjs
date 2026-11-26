@@ -82,7 +82,7 @@ try {
   await page.waitForSelector(".live-empty", { timeout: 15000 });
   check("empty workspace leads with upload", (await page.textContent(".live-empty h1")).includes("first dataset") && (await page.$$("text=Upload dataset")).length >= 1);
   const appText = await page.innerText("body");
-  check("no synthetic dataset names in the signed-in workspace", !/Maternal Outcomes|Hospital Admissions 2025|Demo workspace/.test(appText));
+  check("no synthetic dataset names in the signed-in workspace", !/Maternal Outcomes|Hospital Admissions 2025|Demo/.test(appText));
   check("workspace avatar uses organisation initials", (await page.textContent(".sb-org-avatar")).trim() === "EH");
 
   // Upload a real CSV through the dialog; the backend profiles it.
@@ -173,16 +173,14 @@ try {
   await page.waitForURL(/\/login\?signedOut=local/, { timeout: 15000 });
   check("sign-out without a CSRF token falls back to local sign-out", (await page.textContent("body")).includes("Signed out on this device"));
 
-  // Demo mode makes no API calls. Checked in a fresh context, so only the demo page's requests count.
   await ctx.close();
-  const demoCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  const demo = await demoCtx.newPage();
-  const demoRequests = [];
-  demo.on("request", (r) => { const p = new URL(r.url()).pathname; if (p.startsWith("/api/")) demoRequests.push(`${r.method()} ${p}`); });
-  await demo.goto(`${BASE}/demo`, { waitUntil: "networkidle" });
-  await demo.waitForSelector(".sb-item", { timeout: 15000 });
-  check("demo workspace makes no API calls", demoRequests.length === 0, demoRequests.join(","));
-  await demoCtx.close();
+
+  // The demo route has been removed.
+  const goneCtx = await browser.newContext();
+  const gone = await goneCtx.newPage();
+  const goneResponse = await gone.goto(`${BASE}/demo`);
+  check("/demo is not available", goneResponse.status() === 404, `status=${goneResponse.status()}`);
+  await goneCtx.close();
 
   // ---- Backend not configured
   if (process.env.E2E_UNCONFIGURED_URL) {
