@@ -1,0 +1,106 @@
+// Live analysis flow against a running backend with AI configured: upload, ask, read the answer,
+// generate a PDF report and download it. Requires E2E_BASE_URL; skips without Playwright.
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+let chromium;
+try {
+  ({ chromium } = require(process.env.E2E_PLAYWRIGHT || "playwright"));
+} catch {
+  console.log("SKIPPED: playwright is not installed");
+  process.exit(0);
+}
+const BASE = process.env.E2E_BASE_URL;
+if (!BASE) {
+  console.log("SKIPPED: set E2E_BASE_URL");
+  process.exit(0);
+}
+const SHOTS = process.env.E2E_SCREENSHOTS || null;
+
+const results = [];
+const check = (name, ok, detail = "") => results.push({ name, ok: Boolean(ok), detail });
+const stamp = Date.now().toString(36);
+
+const browser = await chromium.launch({ executablePath: process.env.E2E_CHROMIUM, args: ["--no-sandbox"] });
+try {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+
+  await page.goto(`${BASE}/register`, { waitUntil: "networkidle" });
+  await page.fill("#fullName", "Amina Bello");
+  await page.fill("#email", `analysis.${stamp}@example.org`);
+  await page.fill("#password", "Analysis-Pass1");
+  await page.fill("#confirmPassword", "Analysis-Pass1");
+  await page.fill("#organizationName", "Ogun General Hospital");
+  await page.click("button[type=submit]");
+  await page.waitForSelector(".step-card", { timeout: 20000 });
+  check("first use shows three numbered steps", (await page.$$(".step-card .step-number")).length === 3);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/a1-first-use.png` });
+
+  const rows = ["admission_date,ward,age,length_of_stay,readmitted_30d"];
+  for (let i = 0; i < 150; i++) {
+    const ward = ["Medical", "Surgical", "Maternity"][i % 3];
+    const los = (ward === "Surgical" ? 6 : ward === "Medical" ? 4 : 3) + (i % 5);
+    rows.push(`2025-${String((i % 12) + 1).padStart(2, "0")}-${String((i % 27) + 1).padStart(2, "0")},${ward},${25 + (i % 60)},${los},${i % 6 === 0 ? "yes" : "no"}`);
+  }
+  await page.click("text=Upload dataset");
+  await page.setInputFiles(".modal input[type=file]", { name: "admissions-2025.csv", mimeType: "text/csv", buffer: Buffer.from(rows.join("\n")) });
+  await page.fill("#dataset-name", "Admissions 2025");
+  await page.click(".modal button[type=submit]");
+  await page.waitForSelector(".modal-title:has-text('is ready')", { timeout: 30000 });
+  await page.click(".modal button:has-text('Done')");
+  await page.waitForSelector(".starter", { timeout: 20000 });
+  check("after the first upload the workspace opens a new analysis", (await page.$$("#ask")).length === 1);
+
+  await page.click(".sb-link:has-text('Datasets')");
+  await page.waitForSelector(".ds-table .ds-name", { timeout: 20000 });
+  check("dataset table offers Analyse", (await page.$$(".ds-actions button:has-text('Analyse')")).length === 1);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/a2-datasets.png` });
+
+  await page.click(".ds-actions button:has-text('Analyse')");
+  await page.waitForSelector(".starter", { timeout: 15000 });
+  const starters = await page.$$eval(".starter-q", (els) => els.map((e) => e.textContent));
+  check("starter questions come from the dataset's own columns", starters.some((q) => /length_of_stay|ward|age/.test(q)), starters.join(" | "));
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/a3-new-analysis.png` });
+
+  await page.fill("#ask", "Does length_of_stay differ by ward?");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector(".resp-headline", { timeout: 120000 });
+  await page.waitForTimeout(800);
+  const headline = await page.textContent(".resp-headline");
+  check("answer has a computed headline", headline && headline.length > 10, headline);
+  check("answer shows a chart", (await page.$$(".resp .recharts-wrapper")).length >= 1);
+  check("technical details are available", (await page.$$(".resp .tech")).length === 1);
+  await page.evaluate(() => { const t = document.querySelector(".thread"); if (t) { t.style.scrollBehavior = "auto"; t.scrollTop = 0; } });
+  await page.waitForTimeout(300);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/a4-answer.png` });
+
+  await page.fill("#ask", "Generate a report of this analysis");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector(".report-card", { timeout: 60000 });
+  check("report request produces a PDF report card", (await page.textContent(".report-card")).includes("PDF report"));
+
+  await page.click(".sb-link:has-text('Reports')");
+  await page.waitForSelector(".row-title", { timeout: 15000 });
+  const [download] = await Promise.all([page.waitForEvent("download", { timeout: 30000 }), page.click(".row .row-main")]);
+  const file = download.suggestedFilename();
+  check("report downloads as a PDF", /\.pdf$/i.test(file), file);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/a5-reports.png` });
+
+  await page.reload({ waitUntil: "networkidle" });
+  await page.click(".sb-link:has-text('Conversations')");
+  await page.waitForSelector(".row-title", { timeout: 15000 });
+  check("conversation is kept after reload", (await page.$$(".row-title")).length >= 1);
+
+  check("no page errors", errors.length === 0, errors.join(" | "));
+  await ctx.close();
+} finally {
+  await browser.close();
+}
+
+for (const r of results) console.log(`${r.ok ? "PASS" : "FAIL"} ${r.name}${r.detail ? ` :: ${r.detail}` : ""}`);
+const failed = results.filter((r) => !r.ok).length;
+console.log(`\n${results.length - failed} passed, ${failed} failed`);
+process.exit(failed ? 1 : 0);

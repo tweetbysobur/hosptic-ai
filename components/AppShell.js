@@ -5,15 +5,13 @@ import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Workspace from "./Workspace";
 import { ConversationsPage, ReportsPage, ReportView } from "./Pages";
-import { loadConversations, saveConversations, loadReports, saveReports, uid, titleFrom, reportToMarkdown, downloadText } from "@/lib/store";
+import { loadConversations, saveConversations, uid, titleFrom, reportToMarkdown, downloadText, downloadBlob } from "@/lib/store";
 import { liveAdapter } from "@/lib/workspace/live-adapter";
 import { useSession } from "./auth/SessionProvider";
-import { ROLE_LABELS } from "@/lib/auth/session";
+import { ROLE_LABELS, permissionsFor } from "@/lib/auth/session";
 import LiveHome from "./live/LiveHome";
+import UploadDialog from "./live/UploadDialog";
 import { ConfirmProvider, useConfirm } from "./ui/ConfirmDialog";
-import { permissionsFor } from "@/lib/auth/session";
-
-const DEFAULT_DATASETS = ["maternal"];
 
 export default function AppShell(props) {
   return (
@@ -23,14 +21,15 @@ export default function AppShell(props) {
   );
 }
 
+const fileBase = (title) => String(title || "report").slice(0, 50).replace(/[^\w]+/g, "-").toLowerCase();
+
 function WorkspaceShell({ adapter = liveAdapter }) {
   const confirm = useConfirm();
-  const isLive = adapter.mode === "live";
-  // Asking questions is shown only once the data source supports it.
-  const canAnalyse = adapter.capabilities?.analyse === true;
-  const [datasetsStatus, setDatasetsStatus] = useState("loading");
+  const session = useSession();
+  const permissions = permissionsFor(session?.role);
+
   const [ready, setReady] = useState(false);
-  const [view, setView] = useState(adapter.capabilities?.analyse === false ? "datasets" : "chat");
+  const [view, setView] = useState("chat");
   const [collapsed, setCollapsed] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [conversations, setConversations] = useState([]);
@@ -38,38 +37,47 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   const [activeId, setActiveId] = useState(null);
   const [openReportId, setOpenReportId] = useState(null);
   const [datasets, setDatasets] = useState([]);
-  const [draftDatasets, setDraftDatasets] = useState(DEFAULT_DATASETS);
+  const [datasetsStatus, setDatasetsStatus] = useState("loading");
+  const [draftDatasets, setDraftDatasets] = useState([]);
   const [pending, setPending] = useState(null);
   const [error, setError] = useState(null);
+  const [notice, setNotice] = useState(null);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const inFlight = useRef(false);
 
-  const session = useSession();
-  const identity = adapter.mode === "live" && session
+  const identity = session
     ? { name: session.organization.name, meta: ROLE_LABELS[session.role] || "Member", user: session.user.fullName, email: session.user.email }
     : adapter.identity;
-
   const storageKeys = adapter.storage;
+
+  // Only ready datasets with column details can be analysed.
+  const analysable = useMemo(() => datasets.filter((d) => Array.isArray(d.variables)), [datasets]);
 
   useEffect(() => {
     setConversations(loadConversations(storageKeys.conversations));
-    setReports(loadReports(storageKeys.reports));
     try { setCollapsed(window.localStorage.getItem("hosptic.sidebar") === "collapsed"); } catch {}
     adapter.purgeLegacy?.();
     setReady(true);
   }, [adapter, storageKeys]);
 
+  useEffect(() => { if (ready) saveConversations(conversations, storageKeys.conversations); }, [conversations, ready, storageKeys]);
+
   const loadDatasets = useCallback(() => {
-    setDatasetsStatus("loading");
-    adapter.listDatasets()
-      .then((items) => { setDatasets(items); setDatasetsStatus("ready"); })
-      .catch(() => { setDatasets([]); setDatasetsStatus("error"); });
+    // A refresh keeps the current view, so an open upload dialog is not unmounted mid-flow.
+    setDatasetsStatus((s) => (s === "loading" ? "loading" : "refreshing"));
+    return adapter.listDatasets()
+      .then((items) => { setDatasets(items); setDatasetsStatus("ready"); return items; })
+      .catch(() => { setDatasets([]); setDatasetsStatus("error"); return []; });
   }, [adapter]);
 
-  useEffect(() => { loadDatasets(); }, [loadDatasets]);
+  const loadReports = useCallback(() => adapter.listReports().then(setReports).catch(() => {}), [adapter]);
 
-  useEffect(() => { if (ready) saveConversations(conversations, storageKeys.conversations); }, [conversations, ready, storageKeys]);
-  useEffect(() => { if (ready) saveReports(reports, storageKeys.reports); }, [reports, ready, storageKeys]);
+  useEffect(() => { loadDatasets(); loadReports(); }, [loadDatasets, loadReports]);
 
+  // Start new analyses on the first dataset that can be analysed.
+  useEffect(() => {
+    if (!activeId && draftDatasets.length === 0 && analysable[0]) setDraftDatasets([analysable[0].id]);
+  }, [activeId, draftDatasets.length, analysable]);
 
   const active = useMemo(() => conversations.find((c) => c.id === activeId) || null, [conversations, activeId]);
 
@@ -82,25 +90,24 @@ function WorkspaceShell({ adapter = liveAdapter }) {
 
   const navigate = (v) => { setView(v); setDrawer(false); };
 
-  const newAnalysis = useCallback(() => {
+  const newAnalysis = useCallback((datasetId) => {
     setActiveId(null);
-    setDraftDatasets(DEFAULT_DATASETS);
-    setView(adapter.capabilities?.analyse === false ? "datasets" : "chat");
+    setDraftDatasets(typeof datasetId === "string" ? [datasetId] : analysable[0] ? [analysable[0].id] : []);
+    setView("chat");
     setDrawer(false);
     setError(null);
-  }, [adapter]);
+  }, [analysable]);
 
   useEffect(() => {
     const onKey = (e) => {
-      if (canAnalyse && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); newAnalysis(); }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); newAnalysis(); }
       if (e.key === "Escape") setDrawer(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [newAnalysis, canAnalyse]);
+  }, [newAnalysis]);
 
   const openConversation = (id) => { setActiveId(id); setView("chat"); setDrawer(false); setError(null); };
-
   const updateConversation = (id, fn) => setConversations((cs) => cs.map((c) => (c.id === id ? fn(c) : c)));
 
   const renameConversation = (id, title) => {
@@ -138,17 +145,10 @@ function WorkspaceShell({ adapter = liveAdapter }) {
 
     try {
       const history = conv.messages.filter((m) => m.role === "assistant").map((m) => m.response);
-      const response = await adapter.analyze({ message, datasetIds: conv.datasetIds, context: conv.context, history });
-      let reportId = null;
-      if (response.type === "report" && response.report) {
-        reportId = uid();
-        const rep = { id: reportId, conversationId: id, ...response.report };
-        setReports((rs) => [rep, ...rs]);
-        response.report.id = reportId;
-      }
+      const response = await adapter.analyze({ message, datasetIds: conv.datasetIds, history, datasets: analysable });
+      if (response.type === "report") loadReports();
       updateConversation(id, (c) => ({
         ...c,
-        context: response.type === "analysis" ? response.context : c.context,
         messages: [...c.messages, { id: uid(), role: "assistant", response, at: new Date().toISOString() }],
         updatedAt: new Date().toISOString(),
       }));
@@ -167,30 +167,70 @@ function WorkspaceShell({ adapter = liveAdapter }) {
     setTimeout(() => ask(text), 0);
   };
 
-  const openReport = (report) => { setOpenReportId(report.id); setView("report"); setDrawer(false); };
-  const downloadReport = (report) => downloadText(`${report.title.slice(0, 50).replace(/[^\w]+/g, "-").toLowerCase()}.md`, reportToMarkdown(report));
-  const deleteReport = (id) => setReports((rs) => rs.filter((r) => r.id !== id));
+  const downloadReport = async (report) => {
+    if (!report.pdf) return downloadText(`${fileBase(report.title)}.md`, reportToMarkdown(report));
+    try {
+      const { blob, fileName } = await adapter.downloadReport(report);
+      downloadBlob(fileName || `${fileBase(report.title)}.pdf`, blob);
+    } catch (e) {
+      setNotice(`The report could not be downloaded. ${e.message || ""}`.trim());
+    }
+  };
+  // PDF reports download directly; the in-app reader is only for compiled reports.
+  const openReport = (report) => {
+    if (report.pdf) return downloadReport(report);
+    setOpenReportId(report.id); setView("report"); setDrawer(false);
+  };
+
+  const deleteDataset = async (dataset) => {
+    const ok = await confirm({
+      title: `Delete ${dataset.name}?`,
+      body: "The file is removed for everyone in your organisation. Analyses and reports made from it stay readable.",
+      confirmLabel: "Delete dataset",
+      tone: "danger",
+    });
+    if (!ok) return;
+    try {
+      await adapter.deleteDataset(dataset.id);
+      setDraftDatasets((ids) => ids.filter((x) => x !== dataset.id));
+      await loadDatasets();
+    } catch (e) {
+      setNotice(e.message || "The dataset could not be deleted");
+    }
+  };
 
   const openedReport = reports.find((r) => r.id === openReportId);
-
   const sidebarView = view === "report" ? "reports" : view;
-  const mobileTitle = view === "chat" ? (isLive ? "Workspace" : active?.title || "New analysis") : { conversations: "Conversations", datasets: "Datasets", reports: "Reports", report: "Report" }[view];
+  const mobileTitle = view === "chat" ? (active?.title || "New analysis") : { conversations: "Conversations", datasets: "Datasets", reports: "Reports", report: "Report" }[view];
+  const noData = datasetsStatus !== "loading" && analysable.length === 0;
+
+  const liveHome = (
+    <LiveHome
+      datasets={datasets}
+      status={datasetsStatus}
+      onRetry={loadDatasets}
+      canUpload={permissions.uploadDatasets}
+      canDelete={permissions.uploadDatasets}
+      onUpload={() => setUploadOpen(true)}
+      onAnalyse={permissions.runAnalyses ? (id) => newAnalysis(id) : null}
+      onDelete={deleteDataset}
+    />
+  );
 
   return (
     <div className={`shell ${collapsed ? "collapsed" : ""} ${drawer ? "drawer-open" : ""}`}>
       <Sidebar
         mode={adapter.mode}
-        canAnalyse={adapter.capabilities?.analyse !== false}
         workspace={identity}
         view={sidebarView}
         collapsed={collapsed}
         onToggleCollapse={toggleCollapse}
         onNavigate={navigate}
-        onNew={newAnalysis}
+        onNew={() => newAnalysis()}
         conversations={conversations}
         activeId={activeId}
         onOpenConversation={openConversation}
-        counts={{ conversations: conversations.length, reports: reports.length, datasets: datasets.length }}
+        counts={{}}
         onCloseDrawer={() => setDrawer(false)}
       />
       <div className="scrim" onClick={() => setDrawer(false)} />
@@ -199,40 +239,39 @@ function WorkspaceShell({ adapter = liveAdapter }) {
           <button className="icon-btn" onClick={() => setDrawer(true)} aria-label="Open menu"><Menu size={19} /></button>
           <div className="topbar-title">{mobileTitle}</div>
         </div>
-        {!canAnalyse && (view === "chat" || view === "datasets") && (
-          <LiveHome
-            datasets={datasets}
-            status={datasetsStatus}
-            onRetry={loadDatasets}
-            canUpload={permissionsFor(session?.role).uploadDatasets}
-            upload={(form) => adapter.uploadDataset(form)}
-            onUploaded={loadDatasets}
-            heading={view === "chat" ? "home" : "datasets"}
-          />
+        {notice && (
+          <div className="notice app-notice" role="alert">
+            <div className="notice-body"><div className="notice-text">{notice}</div></div>
+            <button type="button" className="btn" onClick={() => setNotice(null)}>Dismiss</button>
+          </div>
         )}
-        {canAnalyse && view === "chat" && (
+        {view === "chat" && (noData && !active ? liveHome : (
           <Workspace
             key={activeId || "new"}
             conversation={active}
-            datasets={datasets}
+            datasets={analysable}
             selectedDatasets={active ? active.datasetIds : draftDatasets}
             onDatasetsChange={setConversationDatasets}
+            singleDataset={!!adapter.singleDataset}
+            datasetsLoaded={datasetsStatus !== "loading"}
+            onOpenDatasets={() => navigate("datasets")}
             onAsk={ask}
             pending={pending && pending.conversationId === active?.id ? pending : null}
             error={error && error.conversationId === active?.id ? error : null}
             onRetry={retry}
             onRename={(t) => active && renameConversation(active.id, t)}
             onDelete={() => active && deleteConversation(active.id)}
-            onOpenReport={(r) => openReport(reports.find((x) => x.id === r.id) || r)}
+            onOpenReport={openReport}
             onDownloadReport={downloadReport}
             ready={ready}
           />
-        )}
+        ))}
+        {view === "datasets" && liveHome}
         {view === "conversations" && (
-          <ConversationsPage conversations={conversations} onOpen={openConversation} onRename={renameConversation} onDelete={deleteConversation} onNew={newAnalysis} />
+          <ConversationsPage conversations={conversations} onOpen={openConversation} onRename={renameConversation} onDelete={deleteConversation} onNew={() => newAnalysis()} />
         )}
         {view === "reports" && (
-          <ReportsPage reports={reports} conversations={conversations} onOpen={openReport} onDownload={downloadReport} onDelete={deleteReport} />
+          <ReportsPage reports={reports} conversations={conversations} onOpen={openReport} onDownload={downloadReport} onDelete={null} />
         )}
         {view === "report" && openedReport && (
           <ReportView report={openedReport} onBack={() => setView("reports")} onDownload={downloadReport}
@@ -240,6 +279,8 @@ function WorkspaceShell({ adapter = liveAdapter }) {
             conversationExists={conversations.some((c) => c.id === openedReport.conversationId)} />
         )}
       </main>
+      {/* Owned by the shell, so it stays open when a first upload switches the workspace to analysis. */}
+      <UploadDialog open={uploadOpen} onClose={() => setUploadOpen(false)} upload={(form) => adapter.uploadDataset(form)} onUploaded={loadDatasets} />
     </div>
   );
 }

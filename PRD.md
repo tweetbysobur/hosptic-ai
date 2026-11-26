@@ -56,7 +56,9 @@ Non-goals (for now):
 - Shows only the organisation's own datasets, loaded from the backend.
 - First use: an empty state that leads with Upload dataset.
 - Upload: CSV or XLSX, checked in the browser first, then validated and profiled by the backend. The upload result shows rows, columns and data quality notes.
-- Asking questions about uploaded datasets is marked **Soon**. It is not connected yet (see section 7).
+- Ask questions about an uploaded dataset in plain language. The backend chooses the method, computes the statistics and explains them. Starter questions are built from the dataset's own columns.
+- Ask for a report after an analysis to create a PDF, listed under Reports and downloadable by the organisation.
+- Datasets can be deleted by roles allowed to upload. Conversations stay in the browser, because the backend has no conversation resource.
 - Organisation name, initials and role come from the session.
 
 ### 5.4 Backend capabilities (available through the API)
@@ -84,8 +86,8 @@ If the backend cannot produce a checked explanation, the answer shows the statis
 | --- | --- | --- |
 | 1 | Backend contract, auth, sessions, protected workspace, error handling | Done |
 | 1b | Honest live workspace, dataset upload, dashboard refinement | Done |
-| 2 | Dataset list, preview and quality report screens. Ask questions on uploaded data (`POST /api/v1/analysis`). Render backend charts (`histogram`, `bar`, `groupSummary`, `heatmap`, `scatter`). Retry failed analyses | Next |
-| 3 | Reports: generate and download PDFs from completed analyses | Planned |
+| 2 | Ask questions on uploaded data, render backend charts, PDF reports, dataset deletion | Done |
+| 2b | Dataset preview and quality report screens. Retry failed analyses with `POST /analysis/{id}/retry` | Next |
 | 4 | Member management, and an organisation picker for users in several organisations | Planned |
 
 ## 8. Privacy and security requirements

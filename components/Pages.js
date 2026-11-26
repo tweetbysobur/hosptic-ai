@@ -68,7 +68,7 @@ export function ReportsPage({ reports, conversations, onOpen, onDownload, onDele
         <div className="page-head">
           <div>
             <h1>Reports</h1>
-            <p>Reports compiled from your conversations. Ask &ldquo;Generate a report&rdquo; in any analysis to create one.</p>
+            <p>PDF reports from your organisation&rsquo;s analyses. Ask &ldquo;Generate a report&rdquo; after any analysis to create one.</p>
           </div>
         </div>
         <div className="list">
@@ -79,11 +79,11 @@ export function ReportsPage({ reports, conversations, onOpen, onDownload, onDele
               <div className="row" key={r.id}>
                 <button className="row-main" onClick={() => onOpen(r)}>
                   <div className="row-title">{r.title}</div>
-                  <div className="row-meta">{plural(r.sections.length, "section", "sections")} · {r.dataset} · {relativeTime(r.created)}{conv ? ` · from “${conv.title}”` : ""}</div>
+                  <div className="row-meta">{[r.pdf ? "PDF report" : plural(r.sections.length, "section", "sections"), r.dataset].filter(Boolean).join(" · ")} · {relativeTime(r.created)}{conv ? ` · from “${conv.title}”` : ""}</div>
                 </button>
                 <div className="row-actions">
                   <button className="icon-btn" onClick={() => onDownload(r)} aria-label={`Download ${r.title}`} title="Download"><Download size={15} strokeWidth={1.75} /></button>
-                  <button className="icon-btn" onClick={async () => { if (await confirm({ title: "Delete this report?", body: "The report is removed from this device. This cannot be undone.", confirmLabel: "Delete", tone: "danger" })) onDelete(r.id); }} aria-label={`Delete ${r.title}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
+                  {onDelete && <button className="icon-btn" onClick={async () => { if (await confirm({ title: "Delete this report?", body: "The report is removed from this device. This cannot be undone.", confirmLabel: "Delete", tone: "danger" })) onDelete(r.id); }} aria-label={`Delete ${r.title}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>}
                 </div>
               </div>
             );

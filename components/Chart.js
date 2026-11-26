@@ -222,7 +222,7 @@ function BoxPlot({ chart }) {
         <YAxis tick={tick} tickLine={false} axisLine={false} width={48}
           label={{ value: chart.yLabel, angle: -90, position: "insideLeft", fontSize: 12, fill: C.axis, dy: 50 }} />
         <Tooltip cursor={{ fill: "rgba(37,42,52,0.05)" }}
-          content={<Tip rows={(d) => [["Median", fmt(d.median, chart.yUnit)], ["Middle 50%", `${d.q1} – ${d.q3}`], ["Mean", fmt(d.mean, chart.yUnit)], ["Range (excl. outliers)", `${d.min} – ${d.max}`], ["Records", d.n.toLocaleString()]]} />} />
+          content={<Tip rows={(d) => [["Median", fmt(d.median, chart.yUnit)], ["Middle 50%", `${fmt(d.q1)} – ${fmt(d.q3)}`], ["Mean", fmt(d.mean, chart.yUnit)], [chart.rangeLabel || "Range (excl. outliers)", `${fmt(d.min)} – ${fmt(d.max)}`], ["Records", d.n.toLocaleString()]]} />} />
         <Bar dataKey="_base" stackId="b" fill="transparent" isAnimationActive={false} />
         <Bar dataKey="_w1" stackId="b" shape={cap(false)} isAnimationActive={false} />
         <Bar dataKey="_b1" stackId="b" shape={box(false)} isAnimationActive={false} />

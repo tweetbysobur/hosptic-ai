@@ -1,20 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import { Upload, FileSpreadsheet, RotateCcw } from "lucide-react";
-import UploadDialog from "./UploadDialog";
+import { Upload, FileSpreadsheet, RotateCcw, Trash2, ArrowRight } from "lucide-react";
 import { plural, fileSizeLabel } from "@/lib/format";
 import { relativeTime } from "@/lib/store";
 import { UPLOAD_MAX_MB } from "@/lib/workspace/upload";
 
 const STATUS = { READY: "Ready", PROCESSING: "Processing", FAILED: "Failed" };
 
-// Home of the signed-in workspace. It shows only the organisation's own datasets.
-// Until analysis of uploaded data is connected, it says so plainly instead of showing samples.
-export default function LiveHome({ datasets, status, onRetry, canUpload, upload, onUploaded, heading = "home" }) {
-  const [open, setOpen] = useState(false);
+const STEPS = [
+  {
+    title: "Upload a dataset",
+    text: `Add a CSV or Excel file, up to ${UPLOAD_MAX_MB} MB. It is stored privately for your organisation.`,
+  },
+  {
+    title: "Review data quality",
+    text: "Every column is profiled. Missing values, duplicate rows, outliers and inconsistent labels are reported.",
+  },
+  {
+    title: "Ask questions",
+    text: "Ask in plain language. Hosptic chooses a suitable statistical method, runs it and explains the result.",
+  },
+];
+
+// The organisation's datasets, or a first-use guide when there are none yet.
+export default function LiveHome({ datasets, status, onRetry, canUpload, canDelete, onUpload, onAnalyse, onDelete }) {
   const uploadButton = canUpload && (
-    <button type="button" className="btn primary btn-lg" onClick={() => setOpen(true)}>
+    <button type="button" className="btn primary btn-lg" onClick={onUpload}>
       <Upload size={16} strokeWidth={2} /> Upload dataset
     </button>
   );
@@ -35,27 +46,23 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, upload,
   } else if (datasets.length === 0) {
     body = (
       <div className="live-empty">
-        <h1>Start with your first dataset</h1>
-        <p className="lead">
-          Upload a hospital dataset to begin. Hosptic stores it privately for your organisation and profiles every column before any analysis.
-        </p>
-        <div className="live-actions">
-          {uploadButton || <p className="live-note">Uploading needs an administrator or researcher role. Ask one of them to add your organisation&rsquo;s first dataset.</p>}
+        <div className="live-empty-head">
+          <h1>Start with your first dataset</h1>
+          <p className="lead">Three steps from a spreadsheet to a clear, checked answer.</p>
+          <div className="live-actions">
+            {uploadButton || <p className="live-note">Uploading needs an administrator or researcher role. Ask one of them to add your organisation&rsquo;s first dataset.</p>}
+          </div>
         </div>
-        <ol className="live-steps">
-          <li>
-            <h2>Upload</h2>
-            <p>CSV or Excel, up to {UPLOAD_MAX_MB} MB. Columns named like personal identifiers are masked and never sent to the AI service.</p>
-          </li>
-          <li>
-            <h2>Review quality</h2>
-            <p>Missing values, duplicate rows, outliers and inconsistent labels are reported for each column.</p>
-          </li>
-          <li>
-            <h2>Ask questions <span className="soon">Soon</span></h2>
-            <p>Asking questions about your own datasets is being connected.</p>
-          </li>
+        <ol className="step-cards">
+          {STEPS.map((step, i) => (
+            <li key={step.title} className="step-card">
+              <span className="step-number" aria-hidden="true">{i + 1}</span>
+              <h2><span className="sr-only">Step {i + 1}: </span>{step.title}</h2>
+              <p>{step.text}</p>
+            </li>
+          ))}
         </ol>
+        <p className="live-footnote">Columns named like personal identifiers are masked and never sent to the AI service.</p>
       </div>
     );
   } else {
@@ -64,7 +71,7 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, upload,
         <div className="page-head">
           <div>
             <h1>Datasets</h1>
-            <p>{plural(datasets.length, "dataset", "datasets")} in your organisation. Asking questions about them is coming soon.</p>
+            <p>{plural(datasets.length, "dataset", "datasets")} in your organisation. Only your organisation&rsquo;s members can see them.</p>
           </div>
           <div className="spacer" />
           {uploadButton}
@@ -80,6 +87,7 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, upload,
                   <th scope="col" className="hide-sm">File</th>
                   <th scope="col" className="hide-sm">Uploaded</th>
                   <th scope="col">Status</th>
+                  <th scope="col"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -90,13 +98,21 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, upload,
                         <FileSpreadsheet size={16} strokeWidth={1.75} aria-hidden="true" />
                         <span>{d.name}</span>
                       </div>
-                      {d.description && <div className="ds-desc">{d.description}</div>}
+                      {d.sensitiveColumns?.length > 0 && <div className="ds-desc">Not analysed (personal data): {d.sensitiveColumns.join(", ")}</div>}
                     </td>
                     <td className="r">{(d.rowCount ?? 0).toLocaleString()}</td>
                     <td className="r hide-sm">{(d.columnCount ?? 0).toLocaleString()}</td>
                     <td className="hide-sm ds-muted">{d.fileType} · {fileSizeLabel(d.fileSize)}</td>
                     <td className="hide-sm ds-muted" title={d.createdAt ? new Date(d.createdAt).toLocaleString() : undefined}>{relativeTime(d.createdAt)}</td>
                     <td><span className={`status-dot ${d.status === "FAILED" ? "failed" : d.status === "PROCESSING" ? "pending" : ""}`}>{STATUS[d.status] || d.status}</span></td>
+                    <td className="ds-actions">
+                      {onAnalyse && Array.isArray(d.variables) && (
+                        <button type="button" className="btn" onClick={() => onAnalyse(d.id)}>Analyse <ArrowRight size={14} /></button>
+                      )}
+                      {canDelete && onDelete && (
+                        <button type="button" className="icon-btn" onClick={() => onDelete(d)} aria-label={`Delete ${d.name}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -109,8 +125,7 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, upload,
 
   return (
     <div className="page">
-      <div className={heading === "home" && datasets.length === 0 && status === "ready" ? "page-inner live-inner" : "page-inner"}>{body}</div>
-      <UploadDialog open={open} onClose={() => setOpen(false)} upload={upload} onUploaded={onUploaded} />
+      <div className="page-inner">{body}</div>
     </div>
   );
 }

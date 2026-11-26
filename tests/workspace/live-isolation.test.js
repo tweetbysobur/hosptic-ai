@@ -8,7 +8,7 @@ const read = (p) => readFileSync(new URL(p, root), "utf8");
 const SYNTHETIC = ["lib/engine", "lib/datasets", "demo-seed", "demo-adapter", "../engine", "../datasets"];
 
 test("live workspace code never imports synthetic datasets or the sample engine", () => {
-  const files = ["lib/workspace/live-adapter.js", ...readdirSync(new URL("components/live/", root)).map((f) => `components/live/${f}`)];
+  const files = ["lib/workspace/live-adapter.js", "lib/workspace/live-mapping.js", ...readdirSync(new URL("components/live/", root)).map((f) => `components/live/${f}`)];
   for (const file of files) {
     const code = read(file);
     for (const s of SYNTHETIC) assert.equal(code.includes(s), false, `${file} references ${s}`);
@@ -24,9 +24,11 @@ test("live storage is separate from legacy sample data", () => {
   for (const key of Object.values(liveAdapter.storage)) assert.equal(LIVE_LEGACY_KEYS.includes(key), false, key);
 });
 
-test("the live workspace does not claim it can analyse yet", async () => {
-  assert.equal(liveAdapter.capabilities.analyse, false);
-  await assert.rejects(liveAdapter.analyze({ message: "x" }), /not connected/);
+test("analysis needs a dataset and a real question, checked before any request", async () => {
+  assert.equal(liveAdapter.capabilities.analyse, true);
+  await assert.rejects(liveAdapter.analyze({ message: "Does age differ by ward?", datasetIds: [] }), /Choose a dataset/);
+  await assert.rejects(liveAdapter.analyze({ message: "hi", datasetIds: ["d1"] }), /at least 5 characters/);
+  await assert.rejects(liveAdapter.analyze({ message: "Generate a report", datasetIds: ["d1"], history: [] }), /Run an analysis/);
 });
 
 test("no demo route, demo components or sample data remain in the build", () => {

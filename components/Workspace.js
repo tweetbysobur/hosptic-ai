@@ -6,24 +6,12 @@ import Response from "./Response";
 import { useConfirm } from "./ui/ConfirmDialog";
 import { titleFrom } from "@/lib/store";
 
-const STARTERS = {
-  maternal: [
-    { kind: "Compare", icon: GitCompareArrows, q: "Compare maternal complication rates across the four quarters" },
-    { kind: "Trend", icon: TrendingUp, q: "Show the monthly trend in maternal complications" },
-    { kind: "Drivers", icon: Search, q: "Identify variables associated with complications" },
-    { kind: "Relationship", icon: ChartScatter, q: "Is there a relationship between haemoglobin and birth weight?" },
-  ],
-  admissions: [
-    { kind: "Compare", icon: GitCompareArrows, q: "Compare readmission rates by department" },
-    { kind: "Distribution", icon: ChartNoAxesColumn, q: "Show the distribution of length of stay" },
-    { kind: "Trend", icon: TrendingUp, q: "Show the monthly trend in length of stay" },
-    { kind: "Drivers", icon: Search, q: "Which factors are associated with readmissions?" },
-  ],
-};
+// Starter questions come from each dataset's own columns (lib/workspace/live-mapping.js).
+const STARTER_ICONS = { compare: GitCompareArrows, distribution: ChartNoAxesColumn, trend: TrendingUp, drivers: Search, relationship: ChartScatter };
 
-const TYPE_SHORT = { numeric: "123", binary: "y/n", categorical: "abc", date: "date" };
+const TYPE_SHORT = { numeric: "123", binary: "y/n", categorical: "abc", date: "date", text: "txt" };
 
-export default function Workspace({ conversation, datasets, selectedDatasets, onDatasetsChange, onAsk, pending, error, onRetry, onRename, onDelete, onOpenReport, onDownloadReport, ready, preview = false }) {
+export default function Workspace({ conversation, datasets, selectedDatasets, onDatasetsChange, onAsk, pending, error, onRetry, onRename, onDelete, onOpenReport, onDownloadReport, ready, preview = false, singleDataset = false, datasetsLoaded = true, onOpenDatasets = null }) {
   const confirm = useConfirm();
   const [text, setText] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -71,19 +59,21 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
   };
 
   const toggleDataset = (id) => {
-    const next = selectedDatasets.includes(id) ? selectedDatasets.filter((x) => x !== id) : [...selectedDatasets, id];
+    const on = selectedDatasets.includes(id);
+    const next = on ? selectedDatasets.filter((x) => x !== id) : singleDataset ? [id] : [...selectedDatasets, id];
     onDatasetsChange(next);
+    if (singleDataset && !on) setPickerOpen(false);
   };
 
-  const primaryDs = selectedDatasets[0] || "maternal";
-  const starters = STARTERS[primaryDs] || STARTERS.maternal;
+  const primaryDs = selectedDatasets[0] || null;
+  const starters = (dsById[primaryDs]?.starters || []).map((st) => ({ ...st, icon: STARTER_ICONS[st.icon] || Search }));
 
   const composer = (
     <div className="composer-wrap">
       <div className="composer" ref={pickerRef}>
         {pickerOpen && (
           <div className="popover" role="dialog" aria-label="Choose datasets">
-            <div className="popover-label">Choose datasets</div>
+            <div className="popover-label">{singleDataset ? "Choose a dataset" : "Choose datasets"}</div>
             {datasets.map((d) => {
               const on = selectedDatasets.includes(d.id);
               return (
@@ -96,7 +86,8 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
                 </button>
               );
             })}
-            {datasets.length === 0 && <div className="sb-empty">Loading datasets…</div>}
+            {datasets.length === 0 && <div className="sb-empty">{datasetsLoaded ? "No datasets yet." : "Loading datasets…"}</div>}
+            {onOpenDatasets && <button className="ds-option" onClick={() => { setPickerOpen(false); onOpenDatasets(); }}><span className="check"><Plus size={12} /></span><span><div className="ds-option-name">Upload a dataset</div></span></button>}
           </div>
         )}
         <label htmlFor="ask" className="sr-only">Ask a question about your data</label>
@@ -195,7 +186,7 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
               {pending && (
                 <div className="thinking" role="status">
                   <span className="pulse"><span /><span /><span /></span>
-                  Analysing {pending.datasetIds.map((id) => dsById[id]?.name || id).join(" and ")}…
+                  Analysing {pending.datasetIds.map((id) => dsById[id]?.name || id).join(" and ")}. This can take up to a minute.
                 </div>
               )}
               {error && (

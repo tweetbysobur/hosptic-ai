@@ -96,6 +96,7 @@ try {
   const uploadSummary = await page.textContent(".modal-body");
   check("upload confirms rows and columns from the backend", uploadSummary.includes("40 rows") && uploadSummary.includes("4 columns"), uploadSummary);
   await page.click(".modal button:has-text('Done')");
+  await page.click(".sb-link:has-text('Datasets')");
   await page.waitForSelector(".ds-name span", { timeout: 15000 });
   check("uploaded dataset appears in the workspace list", (await page.textContent(".ds-name span")) === "ward-stays");
 

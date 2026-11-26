@@ -5,7 +5,7 @@ import { resolveUpstream, buildUpstreamHeaders, buildDownstreamHeaders } from "@
 
 export const dynamic = "force-dynamic";
 
-const UPSTREAM_TIMEOUT_MS = 120000; // Analyses can wait on the AI service.
+const UPSTREAM_TIMEOUT_MS = 180000; // Analyses can make two calls to the AI service.
 
 function envelope(status, code, message) {
   return Response.json({ success: false, error: { code, message } }, { status, headers: { "Cache-Control": "no-store" } });
