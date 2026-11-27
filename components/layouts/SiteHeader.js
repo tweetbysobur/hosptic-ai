@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import Button from "@/components/ui/Button";
@@ -10,9 +10,17 @@ import { NAV_LINKS } from "@/lib/landing-content";
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  // Transparent over the hero scene; solid once the page scrolls.
+  const [solid, setSolid] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setSolid(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-canvas/95">
+    <header className={`sticky top-0 z-40 border-b transition-colors duration-200 ${solid || open ? "border-line bg-canvas/95" : "border-transparent bg-transparent"}`}>
       <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center gap-6 px-5 sm:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Hosptic home" onClick={close}>
           <Logo size={34} title="Hosptic" />

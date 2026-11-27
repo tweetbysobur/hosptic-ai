@@ -1,14 +1,13 @@
 import SiteHeader from "@/components/layouts/SiteHeader";
 import SiteFooter from "@/components/layouts/SiteFooter";
 import Hero from "@/components/sections/Hero";
-import ProductIntro from "@/components/sections/ProductIntro";
-import Capabilities from "@/components/sections/Capabilities";
+import Product from "@/components/sections/Product";
 import HowItWorks from "@/components/sections/HowItWorks";
 import Privacy from "@/components/sections/Privacy";
 import FinalCta from "@/components/sections/FinalCta";
 
 export const metadata = {
-  title: "Healthcare Data. Clearer Insights. Better Decisions.",
+  title: "Hosptic: Turn Healthcare Data Into Better Decisions",
   description:
     "Transform complex hospital datasets into meaningful insights. Ask questions, uncover patterns and understand your healthcare data with Hosptic.",
 };
@@ -22,8 +21,7 @@ export default function HomePage() {
       <SiteHeader />
       <main id="main">
         <Hero />
-        <ProductIntro />
-        <Capabilities />
+        <Product />
         <HowItWorks />
         <Privacy />
         <FinalCta />

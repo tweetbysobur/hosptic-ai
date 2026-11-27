@@ -290,3 +290,90 @@ table.ds-table tbody tr:hover { background: var(--bg); }
   .composer textarea { padding-top: 10px; padding-bottom: 4px; }
   .composer-note { font-size: 11.5px; margin-top: 6px; }
 }
+
+/* ------------------------------------------------------- landing: hero */
+.hero-scene { position: relative; overflow: hidden; margin-top: -64px; background: #f9d6b9; }
+.hero-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* Keeps the headline side readable and lets the scene settle into the page colour below. */
+.hero-veil {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(248, 245, 243, 0.82) 0%, rgba(248, 245, 243, 0.55) 38%, rgba(248, 245, 243, 0) 62%),
+    linear-gradient(180deg, rgba(248, 245, 243, 0) 80%, #f8f5f3 100%);
+}
+@media (max-width: 767px) {
+  .hero-art { left: -60%; width: 160%; }
+  .hero-veil {
+    background:
+      linear-gradient(180deg, rgba(248, 245, 243, 0.8) 0%, rgba(248, 245, 243, 0.5) 44%, rgba(248, 245, 243, 0) 64%, rgba(248, 245, 243, 0) 86%, #f8f5f3 100%);
+  }
+}
+
+/* ---------------------------------------------- landing: MacBook frame */
+.mbp { container-type: inline-size; width: 100%; }
+.mbp-lid {
+  position: relative; margin: 0 auto; width: 86%;
+  padding: 2.1cqw 1.6cqw 1.6cqw;
+  background: #0d0e10; border-radius: 2.6cqw 2.6cqw 0.9cqw 0.9cqw;
+  box-shadow: 0 0 0 0.16cqw #b9bcc2, 0 0 0 0.32cqw #e4e6e9, 0 3cqw 6cqw -2cqw rgba(37, 42, 52, 0.35);
+}
+.mbp-camera {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 11cqw; height: 1.5cqw; background: #0d0e10; border-radius: 0 0 0.9cqw 0.9cqw;
+}
+.mbp-camera::after {
+  content: ""; position: absolute; left: 50%; top: 45%; width: 0.6cqw; height: 0.6cqw; transform: translate(-50%, -50%);
+  border-radius: 50%; background: #23262c; box-shadow: inset 0 0 0 0.12cqw #2f333a;
+}
+.mbp-screen { position: relative; overflow: hidden; border-radius: 0.5cqw; background: #f8f5f3; }
+/* A faint diagonal sheen, the only reflection on the glass. */
+.mbp-screen::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0) 32%);
+}
+.mbp-browser {
+  display: flex; align-items: center; gap: 1.4cqw; height: 2.7cqw; padding: 0 1.2cqw;
+  background: #f1ecea; border-bottom: 1px solid #e3dcd9;
+}
+.mbp-dots { display: flex; gap: 0.55cqw; }
+.mbp-dots i { display: block; width: 0.85cqw; height: 0.85cqw; border-radius: 50%; background: #ff5f57; }
+.mbp-dots i:nth-child(2) { background: #febc2e; }
+.mbp-dots i:nth-child(3) { background: #28c840; }
+.mbp-url {
+  flex: 1; max-width: 34cqw; margin: 0 auto; height: 1.75cqw; display: grid; place-items: center;
+  border-radius: 0.6cqw; background: #fff; color: #858b98; font-size: max(1.15cqw, 7px); letter-spacing: 0.01em;
+  white-space: nowrap; overflow: hidden;
+}
+.mbp-shot { display: block; width: 100%; height: auto; }
+.mbp-base {
+  position: relative; height: 1.6cqw; margin: 0 auto; width: 100%;
+  background: linear-gradient(180deg, #e9ebee 0%, #cfd2d7 45%, #a9adb4 100%);
+  border-radius: 0.2cqw 0.2cqw 1.6cqw 1.6cqw / 0.2cqw 0.2cqw 1.2cqw 1.2cqw;
+  box-shadow: 0 1.6cqw 2.6cqw -0.8cqw rgba(37, 42, 52, 0.38), inset 0 0.12cqw 0 rgba(255, 255, 255, 0.9);
+}
+.mbp-notch {
+  position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+  width: 14cqw; height: 0.7cqw; border-radius: 0 0 0.9cqw 0.9cqw;
+  background: linear-gradient(180deg, #b7bbc1, #d6d9dd);
+}
+
+/* ------------------------------------------- landing: product visuals */
+.shot { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid #eae5e3; background: #fff; box-shadow: 0 1px 2px rgba(37, 42, 52, 0.04), 0 24px 48px -28px rgba(37, 42, 52, 0.28); }
+.shot-stack { position: relative; padding: 0 0 18% 0; }
+.shot-stack .shot-back { width: 86%; }
+.shot-stack .shot-front { position: absolute; right: 0; bottom: 0; width: 70%; }
+.shot-panel { padding: 22px; border-radius: 20px; background: #efe9e6; }
+.paper {
+  position: relative; margin: 0 auto; max-width: 520px; padding: 0; overflow: hidden; border-radius: 6px;
+  background: #fff; box-shadow: 0 1px 2px rgba(37, 42, 52, 0.06), 0 30px 60px -30px rgba(37, 42, 52, 0.35);
+  aspect-ratio: 1819 / 1180;
+}
+.paper img { display: block; width: 100%; height: auto; }
+.paper::after { content: ""; position: absolute; inset: auto 0 0 0; height: 28%; background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff); }
+
+/* ---------------------------------------------- landing: illustrations */
+.how-art { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: 20px; background: #f8f5f3; }
+.how-art svg { width: 78%; height: auto; }
+.security-art { margin-top: 32px; max-width: 320px; }
+.security-art svg { display: block; width: 100%; height: auto; }
+@media (max-width: 1023px) { .security-art { max-width: 240px; } }
