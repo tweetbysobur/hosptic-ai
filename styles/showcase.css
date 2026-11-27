@@ -762,3 +762,13 @@ button.ds-row-name:hover { color: var(--brand-ink); }
   .st-member:has(.st-locked) { grid-template-columns: 36px minmax(0, 1fr) 80px; }
   .st-signout { flex-direction: row; align-items: center; }
 }
+
+/* Member rows: avatar, who (name, email, one meta line), menu. Same at every width. */
+.st-member, .st-member:has(.st-locked) { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 14px; grid-template-columns: none; }
+.st-member .st-avatar { margin-top: 2px; }
+.st-member-who { flex: 1; min-width: 0; }
+.st-member-meta { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12.5px; color: var(--ink-3); }
+.st-member-meta .st-member-role { font-size: 12.5px; font-weight: 600; color: var(--ink-2); grid-column: auto; grid-row: auto; }
+.st-member-actions { flex: none; grid-column: auto; grid-row: auto; display: block; }
+.st-member-msg { flex-basis: 100%; margin: 0 0 0 50px; }
+@media (max-width: 640px) { .st-member-msg { margin-left: 0; } }

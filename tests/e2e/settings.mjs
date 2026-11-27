@@ -76,7 +76,7 @@ try {
   // Members
   await page.click(".st-nav-item:has-text('Members')");
   await page.waitForSelector(".st-member", { timeout: 20000 });
-  check("the only administrator is locked against changes", (await page.textContent(".st-member")).includes("Last administrator"));
+  check("the only administrator is locked against changes", (await page.textContent(".st-member")).includes("Last administrator") && (await page.locator(".st-member .row-menu").count()) === 0);
   check("a lone member is told they are the only member", (await page.textContent("#st-members-title + .st-lead")).includes("only member"));
   await page.fill("#add-email", `nobody.${stamp}@example.org`);
   await page.click(".st-add button[type=submit]");

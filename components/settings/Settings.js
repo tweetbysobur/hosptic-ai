@@ -288,15 +288,18 @@ function MembersSection({ adapter, currentUserId }) {
                 <div className="st-member-who">
                   <span className="st-member-name">{m.user?.fullName || m.user?.email}{isSelf && <span className="st-you"> (you)</span>}</span>
                   <span className="st-member-email">{m.user?.email}</span>
+                  <span className="st-member-meta tnum">
+                    <span className="st-member-role">{ROLE_LABELS[m.role] || m.role}</span>
+                    <span className={`status-dot ${m.status === "SUSPENDED" ? "failed" : ""}`}>{m.status === "SUSPENDED" ? "Suspended" : "Active"}</span>
+                    <span>Joined {dateLabel(m.joinedAt)}</span>
+                    {lastAdmin && <span title="An organisation needs at least one active administrator">Last administrator, cannot be changed</span>}
+                  </span>
                 </div>
-                <span className="st-member-role">{ROLE_LABELS[m.role] || m.role}</span>
-                <span className={`status-dot st-member-status ${m.status === "SUSPENDED" ? "failed" : ""}`}>{m.status === "SUSPENDED" ? "Suspended" : "Active"}</span>
-                <span className="st-member-joined tnum">Joined {dateLabel(m.joinedAt)}</span>
-                <div className="st-member-actions">
-                  {lastAdmin
-                    ? <span className="st-locked" title="An organisation needs at least one active administrator">Last administrator</span>
-                    : <MemberMenu member={m} isSelf={isSelf} onRole={(r) => changeRole(m, r)} onStatus={(s) => changeStatus(m, s)} onRemove={() => remove(m)} />}
-                </div>
+                {!lastAdmin && (
+                  <div className="st-member-actions">
+                    <MemberMenu member={m} isSelf={isSelf} onRole={(r) => changeRole(m, r)} onStatus={(s) => changeStatus(m, s)} onRemove={() => remove(m)} />
+                  </div>
+                )}
                 {rowState.id === m.id && rowState.message && <p className={`st-member-msg ${rowState.tone === "ok" ? "st-ok-text" : rowState.tone === "err" ? "st-err" : "st-muted-text"}`} role={rowState.tone === "err" ? "alert" : "status"}>{rowState.message}</p>}
               </li>
             );
