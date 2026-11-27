@@ -28,6 +28,7 @@ const people = {
   admin: { name: "Ada Admin", email: `roles.admin.${stamp}@example.org`, org: "Sample Hospital" },
   researcher: { name: "Rae Researcher", email: `roles.researcher.${stamp}@example.org`, org: "Rae Own Clinic" },
   viewer: { name: "Vic Viewer", email: `roles.viewer.${stamp}@example.org`, org: "Vic Own Clinic" },
+  analyst: { name: "Ana Analyst", email: `roles.analyst.${stamp}@example.org`, org: "Ana Own Clinic" },
 };
 const csv = (rows) => Buffer.from(rows.join("\n"));
 const sampleRows = (label) => ["ward,length_of_stay", ...Array.from({ length: 30 }, (_, i) => `${label}${i % 3},${2 + (i % 5)}`)];
@@ -86,20 +87,20 @@ async function signInAs(browser, p, organizationId) {
 const browser = await chromium.launch({ executablePath: process.env.E2E_CHROMIUM, args: ["--no-sandbox"] });
 try {
   // Accounts. The researcher and viewer exist first, so the administrator can add them.
-  for (const key of ["researcher", "viewer"]) { const { ctx } = await register(browser, people[key]); await ctx.close(); }
+  for (const key of ["researcher", "viewer", "analyst"]) { const { ctx } = await register(browser, people[key]); await ctx.close(); }
   const admin = await register(browser, people.admin);
   const orgId = (await (await admin.ctx.request.get(`${BASE}/api/v1/auth/me`)).json()).data.organization.id;
   await upload(admin.page, "Admin Upload", sampleRows("A"));
 
   await admin.page.click(".sb-link:has-text('Settings')");
   await admin.page.click(".st-nav-item:has-text('Members')");
-  for (const [key, role] of [["researcher", "RESEARCHER"], ["viewer", "VIEWER"]]) {
+  for (const [key, role] of [["researcher", "RESEARCHER"], ["viewer", "VIEWER"], ["analyst", "ANALYST"]]) {
     await admin.page.fill("#add-email", people[key].email);
     await admin.page.selectOption(".st-add select", role);
     await admin.page.click(".st-add button[type=submit]");
     await admin.page.waitForFunction((n) => document.querySelector(".st-members")?.textContent.includes(n), people[key].name, { timeout: 20000 });
   }
-  check("administrator adds a researcher and a viewer", (await admin.page.$$(".st-member")).length === 3);
+  check("administrator adds a researcher, a viewer and an analyst", (await admin.page.$$(".st-member")).length === 4);
 
   // ---- Researcher
   const r = await signInAs(browser, people.researcher, orgId);
@@ -176,6 +177,14 @@ try {
   // ---- Viewer
   const v = await signInAs(browser, people.viewer, orgId);
   check("viewer session is for the administrator's organisation", v.role === "VIEWER", v.role);
+  check("viewer opens on Datasets, not the analysis screen", (await v.page.textContent(".page-head h1")) === "Datasets" && (await v.page.$$("#ask")).length === 0);
+  check("viewer sees no New analysis or Conversations", (await v.page.$$(".sb-new")).length === 0 && (await v.page.$$(".sb-link:has-text('Conversations')")).length === 0);
+  check("viewer can still open Reports", (await v.page.$$(".sb-link:has-text('Reports')")).length === 1);
+  await v.page.click(".sb-link:has-text('Reports')");
+  await v.page.waitForSelector(".page-head h1:has-text('Reports')", { timeout: 20000 });
+  check("viewer's Reports page loads", (await v.page.$$(".rp-empty, .ds-row, .ds-list")).length >= 1);
+  await v.page.keyboard.press("Control+k");
+  check("the New analysis shortcut does nothing for a viewer", (await v.page.$$("#ask")).length === 0);
   await v.page.click(".sb-link:has-text('Datasets')");
   await v.page.waitForSelector(".ds-row-name", { timeout: 20000 });
   check("viewer sees no Upload button", (await v.page.$$("button:has-text('Upload dataset')")).length === 0);
@@ -193,6 +202,29 @@ try {
   if (SHOTS) await v.page.screenshot({ path: `${SHOTS}/roles-5-viewer-roles.png` });
   check("no console errors for the viewer", v.errors.length === 0, v.errors.join(" | "));
   await v.ctx.close();
+
+  // ---- Analyst
+  const an = await signInAs(browser, people.analyst, orgId);
+  check("analyst session is for the administrator's organisation", an.role === "ANALYST", an.role);
+  await an.page.click(".sb-link:has-text('Datasets')");
+  await an.page.waitForSelector(".ds-row-name", { timeout: 20000 });
+  check("analyst sees no Upload button", (await an.page.$$("button:has-text('Upload dataset')")).length === 0);
+  const anItems = await menuFor(an.page, "Admin Upload");
+  check("analyst may preview rows but not delete", anItems.includes("Preview rows") && !anItems.includes("Delete dataset"), anItems.join(", "));
+  await an.page.locator(".ds-row", { hasText: "Admin Upload" }).locator(".ds-row-actions button:has-text('Analyse')").click();
+  await an.page.waitForSelector("#ask", { timeout: 20000 });
+  await an.page.fill("#ask", "Summarise length_of_stay");
+  await an.page.keyboard.press("Enter");
+  await an.page.waitForSelector(".resp-headline, .analysis-error", { timeout: 200000 });
+  check("analyst can run an analysis", (await an.page.$$(".resp-headline")).length === 1);
+  check("analyst is not offered Create PDF report", (await an.page.$$("button:has-text('Create PDF report')")).length === 0);
+  if (SHOTS) await an.page.screenshot({ path: `${SHOTS}/roles-6-analyst-answer.png` });
+  await an.page.click(".sb-link:has-text('Settings')");
+  await an.page.waitForSelector("#org-name");
+  const navA = await an.page.$$eval(".st-nav-item", (els) => els.map((e) => e.textContent.trim()));
+  check("analyst sees no Members section", !navA.includes("Members"), navA.join(", "));
+  check("no console errors for the analyst", an.errors.length === 0, an.errors.join(" | "));
+  await an.ctx.close();
 
   // ---- Administrator keeps Delete on everyone's datasets, and it works.
   const aItems = await menuFor(admin.page, "Admin Upload");

@@ -772,3 +772,26 @@ button.ds-row-name:hover { color: var(--brand-ink); }
 .st-member-actions { flex: none; grid-column: auto; grid-row: auto; display: block; }
 .st-member-msg { flex-basis: 100%; margin: 0 0 0 50px; }
 @media (max-width: 640px) { .st-member-msg { margin-left: 0; } }
+
+/* --------------------------------------------------- stage 6 audit fixes */
+/* Rows never grow past their card: long names wrap on phones and actions stay visible. */
+.ds-row-main, .ds-row-text { min-width: 0; max-width: 100%; }
+@media (max-width: 640px) {
+  .ds-row > * { min-width: 0; max-width: 100%; }
+  .ds-row-name { white-space: normal; overflow-wrap: anywhere; }
+  .ds-row-desc { white-space: normal; overflow-wrap: anywhere; }
+}
+
+/* The closed phone menu is hidden from keyboard and screen readers, not only slid away. */
+@media (max-width: 1023px) {
+  .shell:not(.drawer-open) .sidebar { visibility: hidden; transition: transform 240ms var(--ease), visibility 0s linear 240ms; }
+  .shell.drawer-open .sidebar { visibility: visible; transition: transform 240ms var(--ease), visibility 0s; }
+}
+
+/* Comfortable touch targets on phones (36px minimum). */
+@media (max-width: 640px) {
+  .composer-bar .add-ds, .composer-bar .btn.ghost { min-height: 36px; }
+  .composer-bar .send { min-width: 40px; min-height: 40px; }
+  .ds-chip button { min-width: 32px; min-height: 32px; display: inline-grid; place-items: center; }
+  .ds-back { min-height: 36px; padding: 6px 0; }
+}

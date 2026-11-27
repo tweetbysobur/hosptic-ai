@@ -52,8 +52,8 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
       </button>}
 
       <nav className="sb-nav">
-        {NAV.filter((n) => canAnalyse || n.id === "datasets" || n.id === "settings").map((n) => (
-          <button key={n.id} className="sb-link" aria-current={view === n.id || (!canAnalyse && n.id === "datasets") ? "page" : undefined} onClick={() => onNavigate(n.id)} title={n.label}>
+        {NAV.filter((n) => canAnalyse || n.id !== "conversations").map((n) => (
+          <button key={n.id} className="sb-link" aria-current={view === n.id ? "page" : undefined} onClick={() => onNavigate(n.id)} title={n.label}>
             <n.icon size={16} strokeWidth={1.75} />
             <span className="hide-collapsed">{n.label}</span>
           </button>

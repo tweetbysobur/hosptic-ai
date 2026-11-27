@@ -32,7 +32,8 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   const permissions = permissionsFor(session?.role);
 
   const [ready, setReady] = useState(false);
-  const [view, setView] = useState("chat");
+  // Roles that cannot run analyses (viewers) start on Datasets and never see analysis controls.
+  const [view, setView] = useState(permissions.runAnalyses ? "chat" : "datasets");
   const [collapsed, setCollapsed] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [conversations, setConversations] = useState([]);
@@ -101,12 +102,13 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   const navigate = (v) => { setView(v); setDrawer(false); };
 
   const newAnalysis = useCallback((datasetId) => {
+    if (!permissions.runAnalyses) return;
     setActiveId(null);
     setDraftDatasets(typeof datasetId === "string" ? [datasetId] : analysable[0] ? [analysable[0].id] : []);
     setView("chat");
     setDrawer(false);
     setError(null);
-  }, [analysable]);
+  }, [analysable, permissions.runAnalyses]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -256,6 +258,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
     <div className={`shell ${collapsed ? "collapsed" : ""} ${drawer ? "drawer-open" : ""}`}>
       <Sidebar
         mode={adapter.mode}
+        canAnalyse={permissions.runAnalyses}
         workspace={identity}
         view={sidebarView}
         collapsed={collapsed}
