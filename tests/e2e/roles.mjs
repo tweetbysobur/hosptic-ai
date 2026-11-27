@@ -181,6 +181,7 @@ try {
   check("viewer sees no Upload button", (await v.page.$$("button:has-text('Upload dataset')")).length === 0);
   const vItems = await menuFor(v.page, "Admin Upload");
   check("viewer sees no Delete action", !vItems.includes("Delete dataset"), vItems.join(", "));
+  check("viewer is not offered row previews, which the backend refuses for viewers", !vItems.includes("Preview rows"), vItems.join(", "));
   await v.page.click(".sb-link:has-text('Settings')");
   await v.page.waitForSelector("#org-name");
   const navV = await v.page.$$eval(".st-nav-item", (els) => els.map((e) => e.textContent.trim()));

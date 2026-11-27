@@ -79,7 +79,7 @@ const STEPS = [
 ];
 
 // The organisation's datasets, or a first-use guide when there are none yet.
-export default function LiveHome({ datasets, status, onRetry, canUpload, canDelete, onUpload, onAnalyse, onDelete, onOpen = null }) {
+export default function LiveHome({ datasets, status, onRetry, canUpload, canDelete, canPreview = true, onUpload, onAnalyse, onDelete, onOpen = null }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [type, setType] = useState("all");
@@ -219,7 +219,7 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, canDele
               const quality = qualityLabel(d.qualitySummary);
               const menu = [
                 open && { label: "Open dataset", icon: FolderOpen, onClick: () => open("columns") },
-                open && d.status === "READY" && { label: "Preview rows", icon: Table2, onClick: () => open("preview") },
+                open && canPreview && d.status === "READY" && { label: "Preview rows", icon: Table2, onClick: () => open("preview") },
                 open && d.status === "READY" && { label: "Data quality", icon: ClipboardCheck, onClick: () => open("quality") },
                 canDelete?.(d) && onDelete && { label: "Delete dataset", icon: Trash2, danger: true, onClick: () => onDelete(d) },
               ].filter(Boolean);

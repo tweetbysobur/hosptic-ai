@@ -244,6 +244,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
       onRetry={loadDatasets}
       canUpload={permissions.uploadDatasets}
       canDelete={(d) => canDeleteDataset(session, d)}
+      canPreview={permissions.previewRows}
       onUpload={() => setUploadOpen(true)}
       onAnalyse={permissions.runAnalyses ? (id) => newAnalysis(id) : null}
       onDelete={deleteDataset}
