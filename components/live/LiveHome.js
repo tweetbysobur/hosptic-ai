@@ -1,11 +1,14 @@
 "use client";
 
-import { Upload, FileSpreadsheet, RotateCcw, Trash2, ArrowRight } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Upload, FileSpreadsheet, RotateCcw, Trash2, ArrowRight, Search, ShieldCheck } from "lucide-react";
 import { plural, fileSizeLabel } from "@/lib/format";
 import { relativeTime } from "@/lib/store";
 import { UPLOAD_MAX_MB } from "@/lib/workspace/upload";
 
 const STATUS = { READY: "Ready", PROCESSING: "Processing", FAILED: "Failed" };
+const uploadedLabel = (iso) => { const t = relativeTime(iso); return `Uploaded ${t === "Just now" ? "just now" : t}`; };
+const FILTERS = [["all", "All"], ["READY", "Ready"], ["PROCESSING", "Processing"], ["FAILED", "Failed"]];
 
 const STEPS = [
   {
@@ -23,7 +26,17 @@ const STEPS = [
 ];
 
 // The organisation's datasets, or a first-use guide when there are none yet.
-export default function LiveHome({ datasets, status, onRetry, canUpload, canDelete, onUpload, onAnalyse, onDelete }) {
+export default function LiveHome({ datasets, status, onRetry, canUpload, canDelete, onUpload, onAnalyse, onDelete, onOpen = null }) {
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("all");
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return datasets.filter((d) =>
+      (filter === "all" || d.status === filter) &&
+      (!q || [d.name, d.description, d.originalFileName].some((v) => String(v || "").toLowerCase().includes(q))));
+  }, [datasets, query, filter]);
+  const counts = useMemo(() => Object.fromEntries(FILTERS.map(([k]) => [k, k === "all" ? datasets.length : datasets.filter((d) => d.status === k).length])), [datasets]);
+
   const uploadButton = canUpload && (
     <button type="button" className="btn primary btn-lg" onClick={onUpload}>
       <Upload size={16} strokeWidth={2} /> Upload dataset
@@ -76,49 +89,68 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, canDele
           <div className="spacer" />
           {uploadButton}
         </div>
-        <div className="card ds-table-card">
-          <div className="table-scroll">
-            <table className="data ds-table">
-              <thead>
-                <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col" className="r">Rows</th>
-                  <th scope="col" className="r hide-sm">Columns</th>
-                  <th scope="col" className="hide-sm">File</th>
-                  <th scope="col" className="hide-sm">Uploaded</th>
-                  <th scope="col">Status</th>
-                  <th scope="col"><span className="sr-only">Actions</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                {datasets.map((d) => (
-                  <tr key={d.id}>
-                    <td>
-                      <div className="ds-name">
-                        <FileSpreadsheet size={16} strokeWidth={1.75} aria-hidden="true" />
-                        <span>{d.name}</span>
-                      </div>
-                      {d.sensitiveColumns?.length > 0 && <div className="ds-desc">Not analysed (personal data): {d.sensitiveColumns.join(", ")}</div>}
-                    </td>
-                    <td className="r">{(d.rowCount ?? 0).toLocaleString()}</td>
-                    <td className="r hide-sm">{(d.columnCount ?? 0).toLocaleString()}</td>
-                    <td className="hide-sm ds-muted">{d.fileType} · {fileSizeLabel(d.fileSize)}</td>
-                    <td className="hide-sm ds-muted" title={d.createdAt ? new Date(d.createdAt).toLocaleString() : undefined}>{relativeTime(d.createdAt)}</td>
-                    <td><span className={`status-dot ${d.status === "FAILED" ? "failed" : d.status === "PROCESSING" ? "pending" : ""}`}>{STATUS[d.status] || d.status}</span></td>
-                    <td className="ds-actions">
-                      {onAnalyse && Array.isArray(d.variables) && (
-                        <button type="button" className="btn" onClick={() => onAnalyse(d.id)}>Analyse <ArrowRight size={14} /></button>
-                      )}
-                      {canDelete && onDelete && (
-                        <button type="button" className="icon-btn" onClick={() => onDelete(d)} aria-label={`Delete ${d.name}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+        <div className="ds-toolbar">
+          <label className="ds-search">
+            <Search size={15} strokeWidth={1.75} aria-hidden="true" />
+            <span className="sr-only">Search datasets</span>
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, description or file" />
+          </label>
+          <div className="ds-filters" role="group" aria-label="Filter by status">
+            {FILTERS.filter(([k]) => k === "all" || counts[k] > 0).map(([k, label]) => (
+              <button key={k} type="button" className={`ds-filter ${filter === k ? "on" : ""}`} aria-pressed={filter === k} onClick={() => setFilter(k)}>
+                {label} <span className="tnum">{counts[k]}</span>
+              </button>
+            ))}
           </div>
         </div>
+
+        {shown.length === 0 ? (
+          <div className="ds-none" role="status">
+            <p>No datasets match {query ? <>&ldquo;{query}&rdquo;</> : "this filter"}.</p>
+            <button type="button" className="btn" onClick={() => { setQuery(""); setFilter("all"); }}>Clear search</button>
+          </div>
+        ) : (
+          <ul className="ds-list" aria-label="Datasets">
+            {shown.map((d) => {
+              const open = onOpen && d.status !== "PROCESSING" ? () => onOpen(d.id) : null;
+              return (
+                <li key={d.id} className="ds-row">
+                  <div className="ds-row-main">
+                    <span className="ds-row-icon" aria-hidden="true"><FileSpreadsheet size={18} strokeWidth={1.6} /></span>
+                    <div className="ds-row-text">
+                      {open ? (
+                        <button type="button" className="ds-row-name" onClick={open}>{d.name}</button>
+                      ) : (
+                        <span className="ds-row-name">{d.name}</span>
+                      )}
+                      <div className="ds-row-desc">{d.description || d.originalFileName}</div>
+                      <div className="ds-row-meta tnum">
+                        <span className={`status-dot ${d.status === "FAILED" ? "failed" : d.status === "PROCESSING" ? "pending" : ""}`}>{STATUS[d.status] || d.status}</span>
+                        {d.status === "READY" && <span>{(d.rowCount ?? 0).toLocaleString()} rows</span>}
+                        {d.status === "READY" && <span>{plural(d.columnCount ?? 0, "column", "columns")}</span>}
+                        <span>{d.fileType} · {fileSizeLabel(d.fileSize)}</span>
+                        <span title={d.createdAt ? new Date(d.createdAt).toLocaleString() : undefined}>{uploadedLabel(d.createdAt)}</span>
+                        {d.sensitiveColumns?.length > 0 && (
+                          <span className="ds-row-flag"><ShieldCheck size={13} strokeWidth={1.75} aria-hidden="true" /> {plural(d.sensitiveColumns.length, "personal-data column", "personal-data columns")} excluded</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="ds-row-actions">
+                    {open && <button type="button" className="btn ghost" onClick={open}>View</button>}
+                    {onAnalyse && Array.isArray(d.variables) && (
+                      <button type="button" className="btn" onClick={() => onAnalyse(d.id)}>Analyse <ArrowRight size={14} /></button>
+                    )}
+                    {canDelete && onDelete && (
+                      <button type="button" className="icon-btn" onClick={() => onDelete(d)} aria-label={`Delete ${d.name}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </>
     );
   }

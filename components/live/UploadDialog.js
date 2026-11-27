@@ -11,12 +11,13 @@ import { UPLOAD_MAX_MB, validateUploadFile, validateDatasetName, summariseQualit
 export default function UploadDialog({ open, onClose, onUploaded, upload }) {
   const [file, setFile] = useState(null);
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [error, setError] = useState(null);
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState(null);
   const inFlight = useRef(false);
 
-  const reset = () => { setFile(null); setName(""); setError(null); setPending(false); setResult(null); inFlight.current = false; };
+  const reset = () => { setFile(null); setName(""); setDescription(""); setError(null); setPending(false); setResult(null); inFlight.current = false; };
   const close = () => { if (pending) return; reset(); onClose(); };
 
   const submit = async (event) => {
@@ -30,6 +31,7 @@ export default function UploadDialog({ open, onClose, onUploaded, upload }) {
     const form = new FormData();
     form.append("file", file);
     if (name.trim()) form.append("name", name.trim());
+    if (description.trim()) form.append("description", description.trim().slice(0, 1000));
     try {
       const dataset = await upload(form);
       setResult(dataset);
@@ -65,6 +67,9 @@ export default function UploadDialog({ open, onClose, onUploaded, upload }) {
 
           <label className="field-label" htmlFor="dataset-name">Name <span>(optional)</span></label>
           <input id="dataset-name" className="field-input" value={name} onChange={(e) => setName(e.target.value)} maxLength={160} disabled={pending} placeholder="Uses the file name if left empty" />
+
+          <label className="field-label" htmlFor="dataset-description">Description <span>(optional)</span></label>
+          <textarea id="dataset-description" className="field-input field-textarea" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} rows={2} disabled={pending} placeholder="What the data covers, for example the period and the wards" />
 
           {error && <p id="upload-error" className="field-error" role="alert">{error}</p>}
 

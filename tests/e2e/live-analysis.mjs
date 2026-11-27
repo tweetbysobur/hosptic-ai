@@ -55,11 +55,11 @@ try {
   check("after the first upload the workspace opens a new analysis", (await page.$$("#ask")).length === 1);
 
   await page.click(".sb-link:has-text('Datasets')");
-  await page.waitForSelector(".ds-table .ds-name", { timeout: 20000 });
-  check("dataset table offers Analyse", (await page.$$(".ds-actions button:has-text('Analyse')")).length === 1);
+  await page.waitForSelector(".ds-row-name", { timeout: 20000 });
+  check("dataset table offers Analyse", (await page.$$(".ds-row-actions button:has-text('Analyse')")).length === 1);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/a2-datasets.png` });
 
-  await page.click(".ds-actions button:has-text('Analyse')");
+  await page.click(".ds-row-actions button:has-text('Analyse')");
   await page.waitForSelector(".starter", { timeout: 15000 });
   const starters = await page.$$eval(".starter-q", (els) => els.map((e) => e.textContent));
   check("starter questions come from the dataset's own columns", starters.some((q) => /length_of_stay|ward|age/.test(q)), starters.join(" | "));

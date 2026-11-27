@@ -11,6 +11,7 @@ import { useSession } from "./auth/SessionProvider";
 import { ROLE_LABELS, permissionsFor } from "@/lib/auth/session";
 import LiveHome from "./live/LiveHome";
 import UploadDialog from "./live/UploadDialog";
+import DatasetDetail from "./live/DatasetDetail";
 import { ConfirmProvider, useConfirm } from "./ui/ConfirmDialog";
 
 export default function AppShell(props) {
@@ -36,6 +37,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   const [reports, setReports] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [openReportId, setOpenReportId] = useState(null);
+  const [openDatasetId, setOpenDatasetId] = useState(null);
   const [datasets, setDatasets] = useState([]);
   const [datasetsStatus, setDatasetsStatus] = useState("loading");
   const [draftDatasets, setDraftDatasets] = useState([]);
@@ -206,6 +208,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
     try {
       await adapter.deleteDataset(dataset.id);
       setDraftDatasets((ids) => ids.filter((x) => x !== dataset.id));
+      if (openDatasetId === dataset.id) { setOpenDatasetId(null); setView("datasets"); }
       await loadDatasets();
     } catch (e) {
       setNotice(e.message || "The dataset could not be deleted");
@@ -213,8 +216,8 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   };
 
   const openedReport = reports.find((r) => r.id === openReportId);
-  const sidebarView = view === "report" ? "reports" : view;
-  const mobileTitle = view === "chat" ? (active?.title || "New analysis") : { conversations: "Conversations", datasets: "Datasets", reports: "Reports", report: "Report" }[view];
+  const sidebarView = view === "report" ? "reports" : view === "dataset" ? "datasets" : view;
+  const mobileTitle = view === "chat" ? (active?.title || "New analysis") : { conversations: "Conversations", datasets: "Datasets", dataset: "Dataset", reports: "Reports", report: "Report" }[view];
   const noData = datasetsStatus !== "loading" && analysable.length === 0;
 
   const liveHome = (
@@ -227,6 +230,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
       onUpload={() => setUploadOpen(true)}
       onAnalyse={permissions.runAnalyses ? (id) => newAnalysis(id) : null}
       onDelete={deleteDataset}
+      onOpen={(id) => { setOpenDatasetId(id); setView("dataset"); }}
     />
   );
 
@@ -282,6 +286,17 @@ function WorkspaceShell({ adapter = liveAdapter }) {
           />
         ))}
         {view === "datasets" && liveHome}
+        {view === "dataset" && openDatasetId && (
+          <DatasetDetail
+            key={openDatasetId}
+            datasetId={openDatasetId}
+            adapter={adapter}
+            permissions={permissions}
+            onBack={() => setView("datasets")}
+            onAnalyse={permissions.runAnalyses ? (id) => newAnalysis(id) : null}
+            onDelete={permissions.uploadDatasets ? deleteDataset : null}
+          />
+        )}
         {view === "conversations" && (
           <ConversationsPage conversations={conversations} onOpen={openConversation} onRename={renameConversation} onDelete={deleteConversation} onNew={() => newAnalysis()} />
         )}
