@@ -564,3 +564,14 @@ button.ds-row-name:hover { color: var(--brand-ink); }
   .ds-select select { width: 100%; }
   .ds-totals { font-size: 12.5px; }
 }
+
+/* Row menu must float above the list and the next row. */
+.ds-list { overflow: visible; }
+.ds-list > .ds-row:first-child { border-radius: 16px 16px 0 0; }
+.ds-list > .ds-row:last-child { border-radius: 0 0 16px 16px; }
+.ds-list > .ds-row:only-child { border-radius: 16px; }
+.ds-row { position: relative; }
+.ds-row:has(.row-menu-pop) { z-index: 5; }
+.row-menu-pop { z-index: 30; animation: none; }
+.ds-qcols td:first-child { min-width: 200px; }
+.ds-qcols .col-flag, .ds-cols .col-flag { white-space: nowrap; }
