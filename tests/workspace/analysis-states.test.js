@@ -25,3 +25,14 @@ test("the adapter exposes report creation and says conversations are not linked 
   assert.equal(typeof liveAdapter.createReport, "function");
   assert.equal(liveAdapter.capabilities.conversationContext, false);
 });
+
+import { qualitySummary } from "../../lib/workspace/live-adapter.js";
+
+test("quality summary reports the worst severity and its counts", () => {
+  assert.deepEqual(qualitySummary({ issues: [] }).level, "clean");
+  const q = qualitySummary({ duplicateRows: 3, issues: [{ severity: "info" }, { severity: "warning" }, { severity: "warning" }] });
+  assert.equal(q.level, "warning");
+  assert.deepEqual(q.counts, { critical: 0, warning: 2, info: 1 });
+  assert.equal(q.duplicateRows, 3);
+  assert.equal(qualitySummary({ issues: [{ severity: "critical" }, { severity: "info" }] }).level, "critical");
+});

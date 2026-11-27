@@ -42,8 +42,8 @@ function LoadError({ error, onRetry, what }) {
   );
 }
 
-export default function DatasetDetail({ datasetId, adapter, permissions, onBack, onAnalyse, onDelete }) {
-  const [tab, setTab] = useState("columns");
+export default function DatasetDetail({ datasetId, adapter, permissions, onBack, onAnalyse, onDelete, initialTab = "columns" }) {
+  const [tab, setTab] = useState(TABS.some(([k]) => k === initialTab) ? initialTab : "columns");
   const [detail, retryDetail] = useResource(() => adapter.getDataset(datasetId), [datasetId]);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState("");
@@ -71,8 +71,15 @@ export default function DatasetDetail({ datasetId, adapter, permissions, onBack,
       <div className="page-inner ds-detail">
         <button type="button" className="ds-back" onClick={onBack}><ArrowLeft size={15} /> Datasets</button>
 
-        {detail.status === "loading" && <div className="live-state" role="status">Loading dataset…</div>}
-        {detail.status === "error" && <LoadError error={detail.error} onRetry={retryDetail} what="dataset" />}
+        {detail.status === "loading" && <div className="sr-only" role="status">Loading dataset</div>}
+        {detail.status === "loading" && <div className="sk sk-title" aria-hidden="true" />}
+        {detail.status === "error" && (detail.error?.kind === "missing" ? (
+          <div className="ds-gone" role="alert">
+            <h1>This dataset is no longer available</h1>
+            <p>It may have been deleted by someone in your organisation. Analyses and reports made from it stay readable.</p>
+            <button type="button" className="btn" onClick={onBack}><ArrowLeft size={14} /> Back to datasets</button>
+          </div>
+        ) : <LoadError error={detail.error} onRetry={retryDetail} what="dataset" />)}
 
         {d && (
           <>
@@ -186,7 +193,7 @@ function PreviewPanel({ adapter, datasetId }) {
             <thead>
               <tr>
                 <th scope="col" className="r row-num">#</th>
-                {headers.map((h) => <th key={h} scope="col">{h}</th>)}
+                {headers.map((h) => <th key={h} scope="col"><span className="cell-val" title={h.length > 28 ? h : undefined}>{h}</span></th>)}
               </tr>
             </thead>
             <tbody>
@@ -197,7 +204,7 @@ function PreviewPanel({ adapter, datasetId }) {
                     const v = r[h];
                     if (masked.has(h) || v === "[masked]") return <td key={h}><span className="cell-masked">masked</span></td>;
                     if (v === null || v === undefined || v === "") return <td key={h}><span className="cell-empty">—</span></td>;
-                    return <td key={h} className="tnum">{v}</td>;
+                    return <td key={h} className="tnum"><span className="cell-val" title={String(v).length > 40 ? String(v) : undefined}>{v}</span></td>;
                   })}
                 </tr>
               ))}
@@ -247,13 +254,48 @@ function QualityPanel({ adapter, datasetId }) {
         )}
       </section>
 
+      {q.columns?.length > 0 && (
+        <section>
+          <h2 className="ds-h2">By column</h2>
+          <div className="card table-card">
+            <div className="table-scroll">
+              <table className="data ds-qcols">
+                <thead>
+                  <tr>
+                    <th scope="col">Column</th>
+                    <th scope="col">Type</th>
+                    <th scope="col" className="r">Missing</th>
+                    <th scope="col" className="r">Invalid values</th>
+                    <th scope="col" className="r">Outliers</th>
+                    <th scope="col">Label variants</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {q.columns.map((c) => (
+                    <tr key={c.name}>
+                      <td><span className="col-name">{c.name}</span>{c.isSensitive && <span className="col-flag"><ShieldCheck size={13} strokeWidth={1.75} aria-hidden="true" /> Excluded</span>}</td>
+                      <td className="ds-muted">{TYPE_LABEL[c.inferredType] || c.inferredType}</td>
+                      <td className={`r tnum ${c.missingCount ? (c.missingPct >= 20 ? "q-high" : "") : "ds-quiet"}`}>{c.missingCount ? `${c.missingCount.toLocaleString()} (${Number(c.missingPct ?? 0).toFixed(1)}%)` : "None"}</td>
+                      <td className={`r tnum ${c.invalidValues ? "q-high" : "ds-quiet"}`}>{c.invalidValues ? c.invalidValues.toLocaleString() : "None"}</td>
+                      <td className={`r tnum ${c.outliers?.count ? "" : "ds-quiet"}`} title={c.outliers?.count ? `Outside ${c.outliers.lower ?? "—"} to ${c.outliers.upper ?? "—"}` : undefined}>{c.outliers?.count ? c.outliers.count.toLocaleString() : "None"}</td>
+                      <td className={c.labelVariants?.length ? "" : "ds-quiet"}>{c.labelVariants?.length ? c.labelVariants.map((v) => v.join(" / ")).join("; ") : "None"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+
       {q.recommendations?.length > 0 && (
         <section>
           <h2 className="ds-h2">Recommendations</h2>
+          <p className="ds-panel-note">Suggested by the quality check. Hosptic has not changed your data; apply these in your source file and upload it again.</p>
           <ul className="rec-list">{q.recommendations.map((r) => <li key={r}>{r}</li>)}</ul>
         </section>
       )}
-      {q.generatedAt && <p className="ds-panel-note">Report generated {dateLabel(q.generatedAt)} when the file was uploaded. Hosptic reports issues; it does not change your data.</p>}
+      {q.generatedAt && <p className="ds-panel-note">Report generated {dateLabel(q.generatedAt)} when the file was uploaded.</p>}
     </div>
   );
 }

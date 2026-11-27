@@ -56,12 +56,39 @@ try {
   await page.fill("#dataset-description", "Sample adult admissions, January to March, all wards.");
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/lib-2-upload.png` });
   await page.click(".modal button[type=submit]");
+  const progress = await page.waitForSelector(".upload-progress", { timeout: 5000 }).catch(() => null);
+  if (progress && SHOTS) await page.screenshot({ path: `${SHOTS}/lib-2b-uploading.png` });
   await page.waitForSelector(".modal-title:has-text('is ready')", { timeout: 60000 });
+  check("upload shows a progress state, then success", progress !== null || (await page.$$(".modal-title:has-text('is ready')")).length === 1);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/lib-3-upload-done.png` });
   await page.click(".modal button:has-text('Done')");
 
   await page.click(".sb-link:has-text('Datasets')");
   await page.waitForSelector(".ds-row-name", { timeout: 20000 });
+
+  // A rejected file shows a validation error without a request; then a second, larger dataset.
+  await page.click("text=Upload dataset");
+  await page.setInputFiles(".modal input[type=file]", { name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("x") });
+  await page.waitForSelector(".modal .field-error");
+  check("a wrong file type is rejected in the dialog", (await page.textContent(".modal .field-error")).includes("CSV"));
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/lib-2c-upload-error.png` });
+  const big = ["ward,age,length_of_stay"];
+  for (let i = 0; i < 400; i++) big.push(`${["Medical", "Surgical"][i % 2]},${30 + (i % 40)},${2 + (i % 6)}`);
+  await page.setInputFiles(".modal input[type=file]", { name: "stays-2024.csv", mimeType: "text/csv", buffer: Buffer.from(big.join("\n")) });
+  await page.fill("#dataset-name", "Stays 2024");
+  await page.click(".modal button[type=submit]");
+  await page.waitForSelector(".modal-title:has-text('is ready')", { timeout: 60000 });
+  await page.click(".modal button:has-text('Done')");
+  await page.waitForFunction(() => document.querySelectorAll(".ds-row").length === 2, null, { timeout: 20000 });
+
+  const totals = await page.textContent(".ds-totals");
+  check("overview line totals datasets and rows from the backend", totals.includes("2 datasets") && totals.includes("460 rows"), totals);
+  check("each ready dataset shows its quality status", (await page.$$(".ds-quality-tag")).length === 2);
+  await page.selectOption(".ds-select select >> nth=-1", "name");
+  check("sort by name puts Admissions Q1 first", (await page.textContent(".ds-row-name")) === "Admissions Q1");
+  await page.selectOption(".ds-select select >> nth=-1", "size");
+  check("sort by size puts the larger file first", (await page.textContent(".ds-row-name")) === "Stays 2024");
+  await page.selectOption(".ds-select select >> nth=-1", "name");
   const rowText = await page.textContent(".ds-row");
   check("list shows name, description, rows and columns", rowText.includes("Admissions Q1") && rowText.includes("January to March") && rowText.includes("60 rows") && rowText.includes("5 columns"), rowText);
   check("list flags the personal-data column", rowText.includes("1 personal-data column excluded"), rowText);
@@ -75,7 +102,16 @@ try {
   check("search matches the description", (await page.$$(".ds-row")).length === 1);
   await page.fill(".ds-search input", "");
 
-  await page.click("button.ds-row-name");
+  // The row menu opens the dataset straight on its preview.
+  await page.locator(".ds-row").first().locator(".row-menu .icon-btn").click();
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/lib-4b-menu.png` });
+  await page.click(".row-menu-item:has-text('Preview rows')");
+  await page.waitForSelector(".ds-preview tbody tr", { timeout: 20000 });
+  check("the row menu opens the preview tab directly", (await page.getAttribute("#tab-preview", "aria-selected")) === "true");
+  await page.click(".ds-back");
+  await page.waitForSelector(".ds-list");
+
+  await page.locator("button.ds-row-name", { hasText: "Admissions Q1" }).click();
   await page.waitForSelector(".ds-detail-head", { timeout: 20000 });
   const head = await page.textContent(".ds-detail-head");
   check("dataset page shows facts and the original file name", head.includes("Admissions Q1") && head.includes("60") && head.includes("admissions-q1.csv"), head);
@@ -94,17 +130,19 @@ try {
   await page.waitForSelector(".ds-quality", { timeout: 20000 });
   const quality = await page.textContent(".ds-quality");
   check("quality tab reports missing values and issues from the backend", /Missing values\s*6/.test(quality) && quality.includes("Issues"), quality.slice(0, 160));
+  check("quality tab breaks results down by column", (await page.$$(".ds-qcols tbody tr")).length === 5);
+  check("recommendations say the data was not changed", quality.includes("has not changed your data"));
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/lib-7-quality.png` });
 
   await page.click(".ds-back");
   await page.waitForSelector(".ds-list");
-  check("back returns to the library", (await page.$$(".ds-row")).length === 1);
+  check("back returns to the library", (await page.$$(".ds-row")).length === 2);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(300);
   check("no horizontal overflow on the library at 390px", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/lib-8-list-mobile.png` });
-  await page.click("button.ds-row-name");
+  await page.locator("button.ds-row-name").first().click();
   await page.waitForSelector(".ds-cols", { timeout: 20000 });
   check("no horizontal overflow on the dataset page at 390px", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/lib-9-detail-mobile.png` });

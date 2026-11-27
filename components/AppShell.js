@@ -38,6 +38,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   const [activeId, setActiveId] = useState(null);
   const [openReportId, setOpenReportId] = useState(null);
   const [openDatasetId, setOpenDatasetId] = useState(null);
+  const [openDatasetTab, setOpenDatasetTab] = useState("columns");
   const [datasets, setDatasets] = useState([]);
   const [datasetsStatus, setDatasetsStatus] = useState("loading");
   const [draftDatasets, setDraftDatasets] = useState([]);
@@ -230,7 +231,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
       onUpload={() => setUploadOpen(true)}
       onAnalyse={permissions.runAnalyses ? (id) => newAnalysis(id) : null}
       onDelete={deleteDataset}
-      onOpen={(id) => { setOpenDatasetId(id); setView("dataset"); }}
+      onOpen={(id, tab = "columns") => { setOpenDatasetId(id); setOpenDatasetTab(tab); setView("dataset"); }}
     />
   );
 
@@ -288,8 +289,9 @@ function WorkspaceShell({ adapter = liveAdapter }) {
         {view === "datasets" && liveHome}
         {view === "dataset" && openDatasetId && (
           <DatasetDetail
-            key={openDatasetId}
+            key={`${openDatasetId}-${openDatasetTab}`}
             datasetId={openDatasetId}
+            initialTab={openDatasetTab}
             adapter={adapter}
             permissions={permissions}
             onBack={() => setView("datasets")}
