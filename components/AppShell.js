@@ -9,7 +9,7 @@ import { ReportsLibrary, ReportDetail } from "./live/ReportsLibrary";
 import { loadConversations, saveConversations, uid, titleFrom, downloadBlob } from "@/lib/store";
 import { liveAdapter } from "@/lib/workspace/live-adapter";
 import { useSession } from "./auth/SessionProvider";
-import { ROLE_LABELS, permissionsFor } from "@/lib/auth/session";
+import { ROLE_LABELS, permissionsFor, canDeleteDataset } from "@/lib/auth/session";
 import LiveHome from "./live/LiveHome";
 import UploadDialog from "./live/UploadDialog";
 import DatasetDetail from "./live/DatasetDetail";
@@ -243,7 +243,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
       status={datasetsStatus}
       onRetry={loadDatasets}
       canUpload={permissions.uploadDatasets}
-      canDelete={permissions.uploadDatasets}
+      canDelete={(d) => canDeleteDataset(session, d)}
       onUpload={() => setUploadOpen(true)}
       onAnalyse={permissions.runAnalyses ? (id) => newAnalysis(id) : null}
       onDelete={deleteDataset}
@@ -312,7 +312,8 @@ function WorkspaceShell({ adapter = liveAdapter }) {
             permissions={permissions}
             onBack={() => setView("datasets")}
             onAnalyse={permissions.runAnalyses ? (id) => newAnalysis(id) : null}
-            onDelete={permissions.uploadDatasets ? deleteDataset : null}
+            onDelete={deleteDataset}
+            canDelete={(d) => canDeleteDataset(session, d)}
           />
         )}
         {view === "conversations" && (

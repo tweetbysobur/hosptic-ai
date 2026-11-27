@@ -42,7 +42,7 @@ function LoadError({ error, onRetry, what }) {
   );
 }
 
-export default function DatasetDetail({ datasetId, adapter, permissions, onBack, onAnalyse, onDelete, initialTab = "columns" }) {
+export default function DatasetDetail({ datasetId, adapter, permissions, onBack, onAnalyse, onDelete, canDelete = () => false, initialTab = "columns" }) {
   const [tab, setTab] = useState(TABS.some(([k]) => k === initialTab) ? initialTab : "columns");
   const [detail, retryDetail] = useResource(() => adapter.getDataset(datasetId), [datasetId]);
   const [downloading, setDownloading] = useState(false);
@@ -99,7 +99,7 @@ export default function DatasetDetail({ datasetId, adapter, permissions, onBack,
               <div className="ds-detail-actions">
                 {onAnalyse && d.status === "READY" && <button type="button" className="btn primary" onClick={() => onAnalyse(d.id)}>Analyse <ArrowRight size={14} /></button>}
                 {canPreview && <button type="button" className="btn" onClick={download} disabled={downloading}><Download size={14} /> {downloading ? "Preparing…" : "Original file"}</button>}
-                {onDelete && <button type="button" className="icon-btn" onClick={() => onDelete(d)} aria-label={`Delete ${d.name}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>}
+                {onDelete && canDelete(d) && <button type="button" className="icon-btn" onClick={() => onDelete(d)} aria-label={`Delete ${d.name}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>}
               </div>
             </header>
             {downloadError && <p className="ds-inline-error" role="alert">{downloadError}.</p>}

@@ -221,7 +221,7 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, canDele
                 open && { label: "Open dataset", icon: FolderOpen, onClick: () => open("columns") },
                 open && d.status === "READY" && { label: "Preview rows", icon: Table2, onClick: () => open("preview") },
                 open && d.status === "READY" && { label: "Data quality", icon: ClipboardCheck, onClick: () => open("quality") },
-                canDelete && onDelete && { label: "Delete dataset", icon: Trash2, danger: true, onClick: () => onDelete(d) },
+                canDelete?.(d) && onDelete && { label: "Delete dataset", icon: Trash2, danger: true, onClick: () => onDelete(d) },
               ].filter(Boolean);
               return (
                 <li key={d.id} className="ds-row">
