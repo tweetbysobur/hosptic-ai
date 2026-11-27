@@ -575,3 +575,18 @@ button.ds-row-name:hover { color: var(--brand-ink); }
 .row-menu-pop { z-index: 30; animation: none; }
 .ds-qcols td:first-child { min-width: 200px; }
 .ds-qcols .col-flag, .ds-cols .col-flag { white-space: nowrap; }
+
+/* -------------------------------------------------------------- reports */
+.rp-empty { margin-top: 8px; padding: 48px 24px; text-align: center; border: 1px dashed var(--border-strong); border-radius: 16px; color: var(--ink-2); }
+.rp-empty svg { color: var(--brand-ink); }
+.rp-empty h2 { margin-top: 12px; font-size: 18px; font-weight: 700; color: var(--ink); }
+.rp-empty p { margin: 6px auto 18px; max-width: 46ch; font-size: 14px; line-height: 1.6; }
+.status-dot.pending::before { background: var(--warn); }
+
+.rp-detail { max-width: 1040px; }
+.rp-viewer { margin-top: 28px; }
+.rp-pdf { display: block; width: 100%; height: min(78vh, 1100px); border: 1px solid var(--border); border-radius: 14px; background: #fff; }
+.rp-sk { height: min(78vh, 1100px); border-radius: 14px; }
+.rp-fallback { padding: 32px; text-align: center; color: var(--ink-2); }
+.rp-fallback .btn { margin-top: 12px; }
+@media (max-width: 640px) { .rp-pdf, .rp-sk { height: 70vh; } }

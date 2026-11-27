@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Download, ArrowLeft, Printer, Plus, MessagesSquare } from "lucide-react";
+import { Pencil, Trash2, Plus, MessagesSquare } from "lucide-react";
 import { relativeTime } from "@/lib/store";
-import { Evidence, Technical } from "./Response";
 import { useConfirm } from "./ui/ConfirmDialog";
 import { plural } from "@/lib/format";
 
@@ -56,76 +55,6 @@ export function ConversationsPage({ conversations, onOpen, onRename, onDelete, o
           })}
         </div>
       </div>
-    </div>
-  );
-}
-
-export function ReportsPage({ reports, conversations, onOpen, onDownload, onDelete }) {
-  const confirm = useConfirm();
-  return (
-    <div className="page">
-      <div className="page-inner">
-        <div className="page-head">
-          <div>
-            <h1>Reports</h1>
-            <p>PDF reports from your organisation&rsquo;s analyses. Use Create PDF report under any analysis to add one.</p>
-          </div>
-        </div>
-        <div className="list">
-          {reports.length === 0 && <div className="empty-list">No reports yet.</div>}
-          {reports.map((r) => {
-            const conv = conversations.find((c) => c.id === r.conversationId);
-            return (
-              <div className="row" key={r.id}>
-                <button className="row-main" onClick={() => onOpen(r)}>
-                  <div className="row-title">{r.title}</div>
-                  <div className="row-meta">{[r.pdf ? "PDF report" : plural(r.sections.length, "section", "sections"), r.dataset].filter(Boolean).join(" · ")} · {relativeTime(r.created)}{conv ? ` · from “${conv.title}”` : ""}</div>
-                </button>
-                <div className="row-actions">
-                  <button className="icon-btn" onClick={() => onDownload(r)} aria-label={`Download ${r.title}`} title="Download"><Download size={15} strokeWidth={1.75} /></button>
-                  {onDelete && <button className="icon-btn" onClick={async () => { if (await confirm({ title: "Delete this report?", body: "The report is removed from this device. This cannot be undone.", confirmLabel: "Delete", tone: "danger" })) onDelete(r.id); }} aria-label={`Delete ${r.title}`} title="Delete"><Trash2 size={15} strokeWidth={1.75} /></button>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function ReportView({ report, onBack, onDownload, onOpenConversation, conversationExists }) {
-  return (
-    <div className="page">
-      <div className="ws-head no-print" style={{ position: "sticky", top: 0, zIndex: 5 }}>
-        <button className="btn ghost" onClick={onBack}><ArrowLeft size={15} /> Reports</button>
-        <div style={{ flex: 1 }} />
-        {conversationExists && <button className="btn ghost" onClick={onOpenConversation}>Open conversation</button>}
-        <button className="btn" onClick={() => window.print()}><Printer size={14} /> Print</button>
-        <button className="btn primary" onClick={() => onDownload(report)}><Download size={14} /> Download</button>
-      </div>
-      <article className="doc">
-        <h1>{report.title}</h1>
-        <div className="doc-meta">
-          {report.dataset} · Generated {new Date(report.created).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
-        </div>
-        {report.sections.length > 1 && (
-          <nav className="doc-toc" aria-label="Contents">
-            <strong>Contents</strong>
-            <ol>{report.sections.map((s, i) => <li key={i}>{s.headline}</li>)}</ol>
-          </nav>
-        )}
-        {report.sections.map((s, i) => (
-          <section className="doc-section" key={i}>
-            <div className="doc-q">Question: {s.question}</div>
-            <h2>{i + 1}. {s.headline}</h2>
-            <div className="resp-explain">{(s.explanation || []).map((p, j) => <p key={j}>{p}</p>)}</div>
-            <Evidence items={s.evidence} />
-            {s.interpretation?.length > 0 && <ul className="interp">{s.interpretation.map((t) => <li key={t}>{t}</li>)}</ul>}
-            <Technical technical={s.technical} />
-          </section>
-        ))}
-      </article>
     </div>
   );
 }

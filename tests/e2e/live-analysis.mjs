@@ -117,8 +117,18 @@ try {
   check("typing a report request still works", true);
 
   await page.click(".sb-link:has-text('Reports')");
-  await page.waitForSelector(".row-title", { timeout: 15000 });
-  const [download] = await Promise.all([page.waitForEvent("download", { timeout: 30000 }), page.click(".row .row-main")]);
+  await page.waitForSelector(".ds-row-name", { timeout: 30000 });
+  const reportRow = await page.textContent(".ds-row");
+  check("reports list shows the method, dataset and status", reportRow.includes("Admissions 2025") && reportRow.includes("Ready") && /analysis|test|ANOVA|correlation|regression|statistics/i.test(reportRow), reportRow);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/a5a-reports-list.png` });
+
+  // The report page shows the real PDF in place.
+  await page.locator("button.ds-row-name").first().click();
+  await page.waitForSelector(".rp-pdf, .rp-viewer .notice", { timeout: 30000 });
+  check("report page shows the PDF in the page", (await page.$$(".rp-pdf")).length === 1);
+  check("report page names its dataset and method", (await page.textContent(".ds-facts")).includes("Admissions 2025"));
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/a5b-report-view.png` });
+  const [download] = await Promise.all([page.waitForEvent("download", { timeout: 30000 }), page.click("button:has-text('Download PDF')")]);
   const file = download.suggestedFilename();
   check("report downloads as a PDF", /\.pdf$/i.test(file), file);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/a5-reports.png` });

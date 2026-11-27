@@ -4,8 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Workspace from "./Workspace";
-import { ConversationsPage, ReportsPage, ReportView } from "./Pages";
-import { loadConversations, saveConversations, uid, titleFrom, reportToMarkdown, downloadText, downloadBlob } from "@/lib/store";
+import { ConversationsPage } from "./Pages";
+import { ReportsLibrary, ReportDetail } from "./live/ReportsLibrary";
+import { loadConversations, saveConversations, uid, titleFrom, downloadBlob } from "@/lib/store";
 import { liveAdapter } from "@/lib/workspace/live-adapter";
 import { useSession } from "./auth/SessionProvider";
 import { ROLE_LABELS, permissionsFor } from "@/lib/auth/session";
@@ -73,7 +74,10 @@ function WorkspaceShell({ adapter = liveAdapter }) {
       .catch(() => { setDatasets([]); setDatasetsStatus("error"); return []; });
   }, [adapter]);
 
-  const loadReports = useCallback(() => adapter.listReports().then(setReports).catch(() => {}), [adapter]);
+  const [reportsStatus, setReportsStatus] = useState("loading");
+  const loadReports = useCallback(() => adapter.listReports()
+    .then((items) => { setReports(items); setReportsStatus("ready"); })
+    .catch(() => setReportsStatus((s) => (s === "ready" ? "ready" : "error"))), [adapter]);
 
   useEffect(() => { loadDatasets(); loadReports(); }, [loadDatasets, loadReports]);
 
@@ -184,7 +188,6 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   };
 
   const downloadReport = async (report) => {
-    if (!report.pdf) return downloadText(`${fileBase(report.title)}.md`, reportToMarkdown(report));
     try {
       const { blob, fileName } = await adapter.downloadReport(report);
       downloadBlob(fileName || `${fileBase(report.title)}.pdf`, blob);
@@ -192,11 +195,9 @@ function WorkspaceShell({ adapter = liveAdapter }) {
       setNotice(`The report could not be downloaded. ${e.message || ""}`.trim());
     }
   };
-  // PDF reports download directly; the in-app reader is only for compiled reports.
-  const openReport = (report) => {
-    if (report.pdf) return downloadReport(report);
-    setOpenReportId(report.id); setView("report"); setDrawer(false);
-  };
+  // Opens the report page, which shows the PDF in place.
+  const openReport = (report) => { setOpenReportId(report.id); setView("report"); setDrawer(false); };
+  const datasetName = useCallback((id) => (id ? datasets.find((d) => d.id === id)?.name || "Deleted dataset" : ""), [datasets]);
 
   const deleteDataset = async (dataset) => {
     const ok = await confirm({
@@ -303,12 +304,26 @@ function WorkspaceShell({ adapter = liveAdapter }) {
           <ConversationsPage conversations={conversations} onOpen={openConversation} onRename={renameConversation} onDelete={deleteConversation} onNew={() => newAnalysis()} />
         )}
         {view === "reports" && (
-          <ReportsPage reports={reports} conversations={conversations} onOpen={openReport} onDownload={downloadReport} onDelete={null} />
+          <ReportsLibrary
+            reports={reports}
+            status={reportsStatus}
+            onRetry={loadReports}
+            datasetName={datasetName}
+            onOpen={openReport}
+            onDownload={downloadReport}
+            onNewAnalysis={permissions.runAnalyses ? () => newAnalysis() : null}
+          />
         )}
         {view === "report" && openedReport && (
-          <ReportView report={openedReport} onBack={() => setView("reports")} onDownload={downloadReport}
-            onOpenConversation={() => openConversation(openedReport.conversationId)}
-            conversationExists={conversations.some((c) => c.id === openedReport.conversationId)} />
+          <ReportDetail
+            key={openedReport.id}
+            report={openedReport}
+            adapter={adapter}
+            datasetName={datasetName}
+            onBack={() => setView("reports")}
+            onDownload={downloadReport}
+            onAnalyse={permissions.runAnalyses ? (id) => newAnalysis(id) : null}
+          />
         )}
       </main>
       {/* Owned by the shell, so it stays open when a first upload switches the workspace to analysis. */}
