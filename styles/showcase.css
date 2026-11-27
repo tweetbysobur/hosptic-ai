@@ -479,7 +479,7 @@ button.ds-row-name:hover { color: var(--brand-ink); }
 .rec-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--ink); }
 
 /* Dataset library polish: no tiles, no tinted pills, quieter repeats. */
-.ds-row-icon { flex: none; margin-top: 2px; color: var(--ink-3); }
+.ds-row-icon { flex: none; width: 18px; height: 18px; margin-top: 3px; border-radius: 0; background: none; color: var(--ink-3); }
 .ds-row-flag { color: var(--brand-ink); }
 .ds-row-flag::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--brand); margin-right: 6px; vertical-align: middle; }
 .ds-row { padding: 18px 20px; transition: background-color 140ms var(--ease); }
