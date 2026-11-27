@@ -8,7 +8,7 @@ export default function Privacy() {
     <Section id="security" tone="canvas" labelledBy="security-title">
       <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
         <div>
-          <h2 id="security-title" className="text-balance text-3xl font-extrabold leading-[1.12] tracking-[-0.02em] text-ink sm:text-4xl">{PRIVACY.title}</h2>
+          <h2 id="security-title" className="text-balance text-3xl font-extrabold leading-[1.12] tracking-[-0.02em] text-rose sm:text-4xl">{PRIVACY.title}</h2>
           <p className="mt-4 text-pretty text-lg leading-relaxed text-ink-2">{PRIVACY.description}</p>
           <div className="security-art"><ShieldArt /></div>
           <p className="mt-6 text-sm leading-relaxed text-ink-2">{PRIVACY.note}</p>

@@ -20,7 +20,7 @@ export default function AuthLayout({ title, description, children, footer }) {
         <div className="w-full max-w-[440px]">
           <AuthArt />
           <div className="rounded-2xl border border-line bg-surface p-6 shadow-card sm:p-8">
-            <h1 className="text-balance text-2xl font-extrabold tracking-[-0.02em] text-ink sm:text-[28px]">{title}</h1>
+            <h1 className="text-balance text-2xl font-extrabold tracking-[-0.02em] text-rose sm:text-[28px]">{title}</h1>
             {description && <p className="mt-2 text-pretty text-[15px] leading-relaxed text-ink-2">{description}</p>}
             <div className="mt-7">{children}</div>
           </div>

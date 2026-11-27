@@ -14,7 +14,8 @@ export default function Hero() {
         <div className="relative mx-auto w-full max-w-[1200px] px-5 pt-32 pb-48 sm:px-8 sm:pt-40 sm:pb-64 lg:pb-72">
           <div className="max-w-[640px]">
             <h1 id="hero-title" className="text-balance text-[40px] font-extrabold leading-[1.05] tracking-[-0.03em] text-ink sm:text-6xl lg:text-[68px]">
-              {HERO.headline}
+              {HERO.headline.split("Better Decisions.")[0]}
+              <span className="text-rose">Better Decisions.</span>
             </h1>
             <p className="mt-6 max-w-[540px] text-pretty text-lg leading-relaxed text-ink sm:text-xl">
               {HERO.description}

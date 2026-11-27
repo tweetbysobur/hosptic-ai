@@ -6,7 +6,7 @@ export default function FinalCta() {
   return (
     <Section tone="surface" labelledBy="cta-title">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 id="cta-title" className="text-balance text-3xl font-extrabold leading-[1.12] tracking-[-0.02em] text-ink sm:text-4xl">{FINAL_CTA.title}</h2>
+        <h2 id="cta-title" className="text-balance text-3xl font-extrabold leading-[1.12] tracking-[-0.02em] text-rose sm:text-4xl">{FINAL_CTA.title}</h2>
         <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-ink-2">{FINAL_CTA.description}</p>
         <div className="mt-10">
           <Button href="/register">Get Started</Button>

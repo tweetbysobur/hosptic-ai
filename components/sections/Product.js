@@ -24,7 +24,7 @@ const VISUALS = {
 export default function Product() {
   return (
     <Section id="product" tone="canvas" labelledBy="product-title">
-      <h2 id="product-title" className="max-w-2xl text-balance text-3xl font-extrabold leading-[1.12] tracking-[-0.02em] text-ink sm:text-4xl">{PRODUCT.title}</h2>
+      <h2 id="product-title" className="max-w-2xl text-balance text-3xl font-extrabold leading-[1.12] tracking-[-0.02em] text-rose sm:text-4xl">{PRODUCT.title}</h2>
       <div className="mt-16 flex flex-col gap-24 lg:gap-32">
         {PRODUCT.features.map((f, i) => (
           <article key={f.key} className={`grid items-center gap-10 lg:gap-16 ${i % 2 ? "lg:grid-cols-[1.15fr_0.85fr]" : "lg:grid-cols-[0.85fr_1.15fr]"}`}>

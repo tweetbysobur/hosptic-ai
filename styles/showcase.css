@@ -377,3 +377,6 @@ table.ds-table tbody tr:hover { background: var(--bg); }
 .security-art { margin-top: 32px; max-width: 320px; }
 .security-art svg { display: block; width: 100%; height: auto; }
 @media (max-width: 1023px) { .security-art { max-width: 240px; } }
+
+/* Page and empty-state titles carry the brand colour; body text stays charcoal. */
+.page-head h1, .live-empty h1, .empty h1 { color: var(--brand-ink); }
