@@ -11,7 +11,7 @@ export default function AuthLayout({ title, description, children, footer }) {
       <header className="relative px-5 pt-6 sm:px-8">
         <Link href="/" className="inline-flex items-center gap-2.5" aria-label="Hosptic home">
           <Logo size={32} title="Hosptic" />
-          <span className="text-[17px] font-extrabold tracking-tight text-ink">
+          <span className="text-[19px] font-extrabold tracking-tight text-rose">
             Hosptic
           </span>
         </Link>

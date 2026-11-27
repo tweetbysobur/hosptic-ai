@@ -133,11 +133,10 @@ export default function SunsetScene({ className = "" }) {
           <line x1="1096" y1="709" x2="1096" y2="752" />
           <line x1="1134" y1="709" x2="1134" y2="752" />
         </g>
-        {/* Hospital sign: a small cross in the brand coral */}
-        <g transform="translate(1242 318)">
-          <rect x="-20" y="-20" width="40" height="40" rx="9" fill="#ff6082" />
-          <rect x="-4" y="-13" width="8" height="26" rx="2" fill="#fff" />
-          <rect x="-13" y="-4" width="26" height="8" rx="2" fill="#fff" />
+        {/* Rooftop sign: the Hosptic mark on a white plate */}
+        <g transform="translate(1243 314)">
+          <rect x="-38" y="-26" width="76" height="52" rx="10" fill="#fff" />
+          <image href="/brand/hosptic-logo-768.png" x="-30" y="-20" width="60" height="40" />
         </g>
       </g>
 

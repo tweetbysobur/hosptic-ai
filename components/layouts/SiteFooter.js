@@ -9,7 +9,7 @@ export default function SiteFooter() {
       <div className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-5 py-8 sm:px-8 lg:flex-row lg:justify-between lg:gap-10">
         <Link href="/" className="inline-flex shrink-0 items-center gap-2.5" aria-label="Hosptic home">
           <Logo size={28} title="Hosptic" />
-          <span className="text-[16px] font-extrabold tracking-tight text-ink">Hosptic</span>
+          <span className="text-[19px] font-extrabold tracking-tight text-rose">Hosptic</span>
         </Link>
 
         <nav aria-label="Footer">
