@@ -793,5 +793,8 @@ button.ds-row-name:hover { color: var(--brand-ink); }
   .composer-bar .add-ds, .composer-bar .btn.ghost { min-height: 36px; }
   .composer-bar .send { min-width: 40px; min-height: 40px; }
   .ds-chip button { min-width: 32px; min-height: 32px; display: inline-grid; place-items: center; }
+  .composer-bar .ds-chip { min-width: 0; flex: 0 1 auto; }
+  .composer-bar .ds-chip-name { max-width: 26vw; }
+  .composer-bar .send { flex-shrink: 0; margin-left: auto; }
   .ds-back { min-height: 36px; padding: 6px 0; }
 }
