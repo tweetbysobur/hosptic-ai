@@ -124,11 +124,12 @@ try {
 
   // The report page shows the real PDF in place.
   await page.locator("button.ds-row-name").first().click();
-  await page.waitForSelector(".rp-pdf, .rp-viewer .notice", { timeout: 30000 });
-  check("report page shows the PDF in the page", (await page.$$(".rp-pdf")).length === 1);
+  await page.waitForSelector(".rp-pdf, .rp-compact, .rp-viewer .notice", { timeout: 30000 });
+  const viewer = await page.evaluate(() => navigator.pdfViewerEnabled);
+  check("report page shows the PDF, or a compact open link where the browser has no PDF viewer", viewer ? (await page.$$(".rp-pdf")).length === 1 : (await page.$$(".rp-compact a")).length === 1, `pdfViewerEnabled=${viewer}`);
   check("report page names its dataset and method", (await page.textContent(".ds-facts")).includes("Admissions 2025"));
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/a5b-report-view.png` });
-  const [download] = await Promise.all([page.waitForEvent("download", { timeout: 30000 }), page.click("button:has-text('Download PDF')")]);
+  const [download] = await Promise.all([page.waitForEvent("download", { timeout: 30000 }), page.click(".ds-detail-actions button:has-text('Download PDF')")]);
   const file = download.suggestedFilename();
   check("report downloads as a PDF", /\.pdf$/i.test(file), file);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/a5-reports.png` });

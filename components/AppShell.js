@@ -195,6 +195,18 @@ function WorkspaceShell({ adapter = liveAdapter }) {
       setNotice(`The report could not be downloaded. ${e.message || ""}`.trim());
     }
   };
+  // Download that reports errors to its caller, so the Reports page can show them next to the report.
+  const fetchReport = async (report) => {
+    const { blob, fileName } = await adapter.downloadReport(report);
+    downloadBlob(fileName || `${fileBase(report.title)}.pdf`, blob);
+  };
+  // Conversations live on this device; an analysis can be opened only if its conversation is here.
+  const findConversation = useCallback((analysisId) => {
+    if (!analysisId) return null;
+    const c = conversations.find((cv) => cv.messages?.some((m) => m.response?.analysisId === analysisId));
+    return c ? { id: c.id, title: c.title, open: () => openConversation(c.id) } : null;
+  }, [conversations]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Opens the report page, which shows the PDF in place.
   const openReport = (report) => { setOpenReportId(report.id); setView("report"); setDrawer(false); };
   const datasetName = useCallback((id) => (id ? datasets.find((d) => d.id === id)?.name || "Deleted dataset" : ""), [datasets]);
@@ -310,7 +322,9 @@ function WorkspaceShell({ adapter = liveAdapter }) {
             onRetry={loadReports}
             datasetName={datasetName}
             onOpen={openReport}
-            onDownload={downloadReport}
+            onDownload={fetchReport}
+            onOpenDataset={(id) => { setOpenDatasetId(id); setOpenDatasetTab("columns"); setView("dataset"); }}
+            findConversation={findConversation}
             onNewAnalysis={permissions.runAnalyses ? () => newAnalysis() : null}
           />
         )}
@@ -321,8 +335,9 @@ function WorkspaceShell({ adapter = liveAdapter }) {
             adapter={adapter}
             datasetName={datasetName}
             onBack={() => setView("reports")}
-            onDownload={downloadReport}
-            onAnalyse={permissions.runAnalyses ? (id) => newAnalysis(id) : null}
+            onDownload={fetchReport}
+            onOpenDataset={(id) => { setOpenDatasetId(id); setOpenDatasetTab("columns"); setView("dataset"); }}
+            conversation={findConversation(openedReport.analysisId)}
           />
         )}
       </main>
