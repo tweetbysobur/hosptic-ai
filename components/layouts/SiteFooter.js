@@ -1,41 +1,28 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
-import { FOOTER_COLUMNS } from "@/lib/landing-content";
+import { FOOTER_LINKS } from "@/lib/landing-content";
 
+// One horizontal row: brand, links, copyright. Stacks and centres on phones.
 export default function SiteFooter() {
   return (
     <footer className="border-t border-line bg-surface">
-      <div className="mx-auto w-full max-w-[1200px] px-5 py-14 sm:px-8">
-        <div className="grid gap-12 lg:grid-cols-[1.6fr_repeat(3,1fr)]">
-          <div>
-            <Link href="/" className="inline-flex items-center gap-2.5" aria-label="Hosptic home">
-              <Logo size={34} title="Hosptic" />
-              <span className="text-[17px] font-extrabold tracking-tight text-ink">
-                Hosptic
-              </span>
-            </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-2">
-              Conversational analysis for hospital data.
-            </p>
-          </div>
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-5 py-8 sm:px-8 lg:flex-row lg:justify-between lg:gap-10">
+        <Link href="/" className="inline-flex shrink-0 items-center gap-2.5" aria-label="Hosptic home">
+          <Logo size={28} title="Hosptic" />
+          <span className="text-[16px] font-extrabold tracking-tight text-ink">Hosptic</span>
+        </Link>
 
-          {FOOTER_COLUMNS.map((col) => (
-            <div key={col.title}>
-              <p className="text-sm font-semibold text-ink">{col.title}</p>
-              <ul className="mt-4 flex flex-col gap-3">
-                {col.links.map((l) => (
-                  <li key={l.label}>
-                    <a href={l.href} className="text-sm text-ink-2 transition hover:text-rose">{l.label}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+        <nav aria-label="Footer">
+          <ul className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3">
+            {FOOTER_LINKS.map((l) => (
+              <li key={l.label}>
+                <a href={l.href} className="text-sm text-ink-2 transition-colors hover:text-rose">{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-line pt-6 text-sm text-ink-2 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Hosptic. All rights reserved.</p>
-        </div>
+        <p className="shrink-0 text-sm text-ink-2">© 2026 Hosptic. All rights reserved.</p>
       </div>
     </footer>
   );
