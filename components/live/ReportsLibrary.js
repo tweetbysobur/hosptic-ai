@@ -16,6 +16,7 @@ const PERIODS = [["any", "Any time", Infinity], ["7", "Past 7 days", 7 * DAY], [
 // Secondary actions for one report. Closes on outside click and Escape.
 function RowMenu({ name, items }) {
   const [open, setOpen] = useState(false);
+  const [up, setUp] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
     if (!open) return;
@@ -27,11 +28,11 @@ function RowMenu({ name, items }) {
   }, [open]);
   return (
     <div className="row-menu" ref={ref}>
-      <button type="button" className="icon-btn" aria-label={`More actions for ${name}`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <button type="button" className="icon-btn" aria-label={`More actions for ${name}`} aria-haspopup="menu" aria-expanded={open} onClick={(e) => { setUp(window.innerHeight - e.currentTarget.getBoundingClientRect().bottom < 260); setOpen((o) => !o); }}>
         <MoreHorizontal size={17} strokeWidth={1.75} />
       </button>
       {open && (
-        <div className="row-menu-pop" role="menu">
+        <div className={`row-menu-pop ${up ? "up" : ""}`} role="menu">
           {items.map((it) => (
             <button key={it.label} type="button" role="menuitem" className="row-menu-item" onClick={() => { setOpen(false); it.onClick(); }}>
               <it.icon size={15} strokeWidth={1.75} aria-hidden="true" /> {it.label}

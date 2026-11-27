@@ -52,18 +52,18 @@ try {
   await page.click(".sb-link:has-text('Settings')");
   await page.waitForSelector("#org-name", { timeout: 20000 });
   check("organisation section shows the current name", (await page.inputValue("#org-name")) === "Sample Hospital");
-  check("save is disabled until something changes", await page.isDisabled(".st-actions button[type=submit]"));
+  check("save is disabled until something changes", await page.isDisabled(".st-card-foot button[type=submit]"));
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/st-1-organisation.png` });
 
   await page.fill("#org-name", "S");
-  await page.click(".st-actions button[type=submit]");
+  await page.click(".st-card-foot button[type=submit]");
   check("a one-character name is rejected before saving", (await page.textContent("#org-name-err")).includes("2 to 160"));
   await page.fill("#org-email", "not-an-email");
   await page.fill("#org-name", "Sample Hospital Trust");
-  await page.click(".st-actions button[type=submit]");
+  await page.click(".st-card-foot button[type=submit]");
   check("an invalid contact email is rejected", (await page.textContent("#org-email-err")).includes("valid email"));
   await page.fill("#org-email", "research@example.org");
-  await page.click(".st-actions button[type=submit]");
+  await page.click(".st-card-foot button[type=submit]");
   await page.waitForSelector(".st-ok", { timeout: 20000 });
   check("saving shows success", (await page.textContent(".st-ok")).includes("Changes saved"));
   check("the sidebar shows the new organisation name", (await page.textContent(".sb-org-name")) === "Sample Hospital Trust");
@@ -75,9 +75,9 @@ try {
 
   // Members
   await page.click(".st-nav-item:has-text('Members')");
-  await page.waitForSelector(".st-members .ds-row", { timeout: 20000 });
-  check("the only administrator is locked against changes", (await page.textContent(".st-members .ds-row")).includes("Last administrator"));
-  check("a lone member sees how to add colleagues", (await page.$$(".st-note")).length === 1);
+  await page.waitForSelector(".st-member", { timeout: 20000 });
+  check("the only administrator is locked against changes", (await page.textContent(".st-member")).includes("Last administrator"));
+  check("a lone member is told they are the only member", (await page.textContent("#st-members-title + .st-lead")).includes("only member"));
   await page.fill("#add-email", `nobody.${stamp}@example.org`);
   await page.click(".st-add button[type=submit]");
   await page.waitForSelector(".st-err", { timeout: 20000 });
@@ -86,14 +86,16 @@ try {
   await page.selectOption(".st-add select", "ANALYST");
   await page.click(".st-add button[type=submit]");
   await page.waitForSelector(".st-inline.st-ok", { timeout: 20000 });
-  check("adding an existing account works", (await page.$$(".st-members .ds-row")).length === 2 && (await page.textContent(".st-members")).includes("Colleague Sample"));
+  check("adding an existing account works", (await page.$$(".st-member")).length === 2 && (await page.textContent(".st-members")).includes("Colleague Sample"));
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/st-3-members.png` });
 
-  const colleague = page.locator(".st-members .ds-row", { hasText: "Colleague Sample" });
+  const colleague = page.locator(".st-member", { hasText: "Colleague Sample" });
   await colleague.locator(".row-menu .icon-btn").click();
+  const menuBox = await page.locator(".row-menu-pop").boundingBox();
+  check("the member menu stays inside the window", menuBox && menuBox.y >= 0 && menuBox.y + menuBox.height <= (await page.evaluate(() => window.innerHeight)) + 1, JSON.stringify(menuBox));
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/st-4-member-menu.png` });
   await page.click(".row-menu-item:has-text('Researcher')");
-  await page.waitForFunction(() => [...document.querySelectorAll(".st-members .ds-row")].some((r) => r.textContent.includes("Colleague Sample") && r.textContent.includes("Researcher") && r.textContent.includes("Role changed")), null, { timeout: 20000 });
+  await page.waitForFunction(() => [...document.querySelectorAll(".st-member")].some((r) => r.textContent.includes("Colleague Sample") && r.textContent.includes("Researcher") && r.textContent.includes("Role changed")), null, { timeout: 20000 });
   check("changing a role is saved", true);
 
   await colleague.locator(".row-menu .icon-btn").click();
@@ -101,16 +103,16 @@ try {
   await page.waitForSelector(".confirm, [role=alertdialog], .modal", { timeout: 5000 });
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/st-5-confirm.png` });
   await page.click(".modal button:has-text('Suspend access')");
-  await page.waitForFunction(() => [...document.querySelectorAll(".st-members .ds-row")].some((r) => r.textContent.includes("Suspended")), null, { timeout: 20000 });
+  await page.waitForFunction(() => [...document.querySelectorAll(".st-member")].some((r) => r.textContent.includes("Suspended")), null, { timeout: 20000 });
   check("suspending asks first, then shows Suspended", true);
   await colleague.locator(".row-menu .icon-btn").click();
   await page.click(".row-menu-item:has-text('Reactivate')");
-  await page.waitForFunction(() => [...document.querySelectorAll(".st-members .ds-row")].some((r) => r.textContent.includes("Access restored")), null, { timeout: 20000 });
+  await page.waitForFunction(() => [...document.querySelectorAll(".st-member")].some((r) => r.textContent.includes("Access restored")), null, { timeout: 20000 });
   check("reactivating restores access", true);
   await colleague.locator(".row-menu .icon-btn").click();
   await page.click(".row-menu-item:has-text('Remove from organisation')");
   await page.click(".modal button:has-text('Remove member')");
-  await page.waitForFunction(() => document.querySelectorAll(".st-members .ds-row").length === 1, null, { timeout: 20000 });
+  await page.waitForFunction(() => document.querySelectorAll(".st-member").length === 1, null, { timeout: 20000 });
   check("removing a member asks first, then removes them", true);
 
   // Roles and account
@@ -119,16 +121,16 @@ try {
   check("roles table lists all four roles and marks yours", (await page.$$(".st-matrix thead th.c")).length === 4 && (await page.textContent(".st-matrix thead th.is-current")) === "Administrator");
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/st-6-roles.png` });
   await page.click(".st-nav-item:has-text('Account')");
-  await page.waitForSelector(".st-account");
-  const account = await page.textContent(".st-account");
+  await page.waitForSelector(".st-rows");
+  const account = (await page.textContent(".st-account-head")) + (await page.textContent(".st-rows"));
   check("account shows your name, email, role and organisation", account.includes("Settings Admin") && account.includes(ADMIN) && account.includes("Administrator") && account.includes("Sample Hospital Trust"), account);
-  check("account offers sign out and is honest about missing controls", (await page.$$(".st-signout button:has-text('Sign out')")).length === 1 && (await page.textContent(".st-note")).includes("not available yet"));
+  check("account offers sign out and is honest about missing controls", (await page.$$(".st-signout button:has-text('Sign out')")).length === 1 && (await page.textContent(".st-rows .st-quiet")).includes("not available yet"));
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/st-7-account.png` });
 
   for (const [w, h, label] of [[820, 1180, "tablet"], [390, 844, "mobile"]]) {
     await page.setViewportSize({ width: w, height: h });
     await page.click(".st-nav-item:has-text('Members')");
-    await page.waitForSelector(".st-members .ds-row");
+    await page.waitForSelector(".st-member");
     check(`no horizontal overflow in Settings at ${w}px`, !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/st-8-${label}.png` });
   }

@@ -54,7 +54,6 @@ export default function Settings({ adapter, session, permissions, onOrganization
         <div className="page-head">
           <div>
             <h1>Settings</h1>
-            <p>Your organisation, its members and your account.</p>
           </div>
         </div>
         <div className="st-layout">
@@ -116,33 +115,41 @@ function OrganisationSection({ adapter, canEdit, onRenamed }) {
   };
 
   return (
-    <section aria-labelledby="st-org-title">
-      <h2 id="st-org-title" className="st-h2">Organisation</h2>
-      <p className="st-lead">{canEdit ? "The name appears across the workspace and on PDF reports." : "Only administrators can change these details."}</p>
-      <form className="st-form" onSubmit={submit} noValidate>
-        <div className="st-field">
-          <label htmlFor="org-name">Organisation name</label>
-          <input id="org-name" className="field-input" value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); setSave({ status: "idle" }); }} disabled={!canEdit || save.status === "saving"} maxLength={160} aria-invalid={!!errors.name} aria-describedby={errors.name ? "org-name-err" : undefined} />
-          {errors.name && <p id="org-name-err" className="field-error">{errors.name}</p>}
+    <section className="st-card" aria-labelledby="st-org-title">
+      <header className="st-card-head">
+        <h2 id="st-org-title" className="st-h2">Organisation profile</h2>
+        <p className="st-lead">{canEdit ? "The name appears across the workspace and on PDF reports." : "Only administrators can change these details."}</p>
+      </header>
+      <form onSubmit={submit} noValidate>
+        <div className="st-card-body">
+          <div className="st-grid">
+            <div className="st-field">
+              <label htmlFor="org-name">Organisation name</label>
+              <input id="org-name" className="field-input" value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); setSave({ status: "idle" }); }} disabled={!canEdit || save.status === "saving"} maxLength={160} aria-invalid={!!errors.name} aria-describedby={errors.name ? "org-name-err" : undefined} />
+              {errors.name && <p id="org-name-err" className="field-error">{errors.name}</p>}
+            </div>
+            <div className="st-field">
+              <label htmlFor="org-email">Contact email <span>(optional)</span></label>
+              <input id="org-email" type="email" className="field-input" value={form.email} onChange={(e) => { setForm({ ...form, email: e.target.value }); setSave({ status: "idle" }); }} disabled={!canEdit || save.status === "saving"} placeholder={canEdit ? "research@hospital.org" : "Not set"} aria-invalid={!!errors.email} aria-describedby={errors.email ? "org-email-err" : undefined} />
+              {errors.email && <p id="org-email-err" className="field-error">{errors.email}</p>}
+            </div>
+          </div>
+          <dl className="st-meta">
+            <div><dt>Workspace ID</dt><dd className="tnum">{o.slug || "—"}</dd></div>
+            <div><dt>Created</dt><dd className="tnum">{dateLabel(o.createdAt)}</dd></div>
+          </dl>
         </div>
-        <div className="st-field">
-          <label htmlFor="org-email">Contact email <span>(optional)</span></label>
-          <input id="org-email" type="email" className="field-input" value={form.email} onChange={(e) => { setForm({ ...form, email: e.target.value }); setSave({ status: "idle" }); }} disabled={!canEdit || save.status === "saving"} placeholder={canEdit ? "research@hospital.org" : "Not set"} aria-invalid={!!errors.email} aria-describedby={errors.email ? "org-email-err" : undefined} />
-          {errors.email && <p id="org-email-err" className="field-error">{errors.email}</p>}
-        </div>
-        <dl className="ds-facts st-facts">
-          <div><dt>Workspace ID</dt><dd>{o.slug || "—"}</dd></div>
-          <div><dt>Created</dt><dd>{dateLabel(o.createdAt)}</dd></div>
-        </dl>
         {canEdit && (
-          <div className="st-actions">
+          <footer className="st-card-foot">
+            <div className="st-foot-status">
+              {save.status === "saved" && <span className="st-ok" role="status"><Check size={14} /> {save.message}</span>}
+              {save.status === "error" && <span className="st-err" role="alert">{save.message}</span>}
+            </div>
+            <button type="button" className="btn ghost" disabled={!dirty || save.status === "saving"} onClick={() => { setForm({ name: o.name || "", email: o.email || "" }); setErrors({}); setSave({ status: "idle" }); }}>Cancel</button>
             <button type="submit" className="btn primary" disabled={!dirty || save.status === "saving"}>
               {save.status === "saving" ? <><Loader2 size={14} className="spin" /> Saving…</> : "Save changes"}
             </button>
-            <button type="button" className="btn ghost" disabled={!dirty || save.status === "saving"} onClick={() => { setForm({ name: o.name || "", email: o.email || "" }); setErrors({}); setSave({ status: "idle" }); }}>Cancel</button>
-            {save.status === "saved" && <span className="st-ok" role="status"><Check size={14} /> {save.message}</span>}
-            {save.status === "error" && <span className="st-err" role="alert">{save.message}</span>}
-          </div>
+          </footer>
         )}
       </form>
     </section>
@@ -151,6 +158,12 @@ function OrganisationSection({ adapter, canEdit, onRenamed }) {
 
 function MemberMenu({ member, isSelf, onRole, onStatus, onRemove }) {
   const [open, setOpen] = useState(false);
+  const [up, setUp] = useState(false);
+  const toggle = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setUp(window.innerHeight - r.bottom < 300);
+    setOpen((o) => !o);
+  };
   useEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
@@ -160,11 +173,11 @@ function MemberMenu({ member, isSelf, onRole, onStatus, onRemove }) {
   const suspended = member.status === "SUSPENDED";
   return (
     <div className="row-menu" onClick={(e) => e.stopPropagation()}>
-      <button type="button" className="icon-btn" aria-label={`Actions for ${member.user?.fullName}`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <button type="button" className="icon-btn" aria-label={`Actions for ${member.user?.fullName}`} aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
         <MoreHorizontal size={17} strokeWidth={1.75} />
       </button>
       {open && (
-        <div className="row-menu-pop" role="menu">
+        <div className={`row-menu-pop ${up ? "up" : ""}`} role="menu">
           <div className="row-menu-label">Change role</div>
           {ROLE_ORDER.filter((r) => r !== member.role).map((r) => (
             <button key={r} type="button" role="menuitem" className="row-menu-item" onClick={() => { setOpen(false); onRole(r); }}>{ROLE_LABELS[r]}</button>
@@ -234,65 +247,74 @@ function MembersSection({ adapter, currentUserId }) {
   };
 
   return (
-    <section aria-labelledby="st-members-title">
-      <h2 id="st-members-title" className="st-h2">Members</h2>
-      <p className="st-lead">{plural(list.length, "member", "members")}. Add someone who already has a Hosptic account by their email address.</p>
+    <div className="st-stack">
+      <section className="st-card" aria-labelledby="st-add-title">
+        <header className="st-card-head">
+          <h2 id="st-add-title" className="st-h2">Add a member</h2>
+          <p className="st-lead">Add a colleague who already has a Hosptic account, using the email they sign in with.</p>
+        </header>
+        <div className="st-card-body">
+          <form className="st-add" onSubmit={submitAdd} noValidate>
+            <label className="sr-only" htmlFor="add-email">Email address</label>
+            <input id="add-email" type="email" className="field-input" placeholder="colleague@hospital.org" value={add.email} onChange={(e) => { setAdd({ ...add, email: e.target.value }); setAddState({ status: "idle" }); }} disabled={addState.status === "saving"} />
+            <label className="ds-select"><span className="sr-only">Role</span>
+              <select value={add.role} onChange={(e) => setAdd({ ...add, role: e.target.value })} disabled={addState.status === "saving"}>
+                {ROLE_ORDER.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+              </select>
+            </label>
+            <button type="submit" className="btn primary" disabled={addState.status === "saving"}>
+              {addState.status === "saving" ? <Loader2 size={14} className="spin" /> : <UserPlus size={14} />} Add member
+            </button>
+          </form>
+          {addState.status === "saved" && <p className="st-ok st-inline" role="status"><Check size={14} /> {addState.message}</p>}
+          {addState.status === "error" && <p className="st-err st-inline" role="alert">{addState.message}</p>}
+        </div>
+      </section>
 
-      <form className="st-add" onSubmit={submitAdd} noValidate>
-        <label className="sr-only" htmlFor="add-email">Email address</label>
-        <input id="add-email" type="email" className="field-input" placeholder="colleague@hospital.org" value={add.email} onChange={(e) => { setAdd({ ...add, email: e.target.value }); setAddState({ status: "idle" }); }} disabled={addState.status === "saving"} />
-        <label className="ds-select"><span className="sr-only">Role</span>
-          <select value={add.role} onChange={(e) => setAdd({ ...add, role: e.target.value })} disabled={addState.status === "saving"}>
-            {ROLE_ORDER.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
-          </select>
-        </label>
-        <button type="submit" className="btn primary" disabled={addState.status === "saving"}>
-          {addState.status === "saving" ? <Loader2 size={14} className="spin" /> : <UserPlus size={14} />} Add member
-        </button>
-      </form>
-      {addState.status === "saved" && <p className="st-ok st-inline" role="status"><Check size={14} /> {addState.message}</p>}
-      {addState.status === "error" && <p className="st-err st-inline" role="alert">{addState.message}</p>}
-
-      {list.length <= 1 && <p className="st-note">You are the only member so far. Colleagues need their own Hosptic account before you can add them.</p>}
-
-      <ul className="ds-list st-members" aria-label="Members">
-        {list.map((m) => {
-          const isSelf = m.user?.id === currentUserId;
-          const lastAdmin = m.role === "ORGANIZATION_ADMIN" && m.status === "ACTIVE" && activeAdmins <= 1;
-          return (
-            <li key={m.id} className="ds-row">
-              <div className="ds-row-main">
+      <section className="st-card" aria-labelledby="st-members-title">
+        <header className="st-card-head st-card-head-row">
+          <div>
+            <h2 id="st-members-title" className="st-h2">Members</h2>
+            <p className="st-lead">{list.length <= 1 ? "You are the only member so far." : `${plural(list.length, "member", "members")} in this organisation.`}</p>
+          </div>
+        </header>
+        <ul className="st-members" aria-label="Members">
+          {list.map((m) => {
+            const isSelf = m.user?.id === currentUserId;
+            const lastAdmin = m.role === "ORGANIZATION_ADMIN" && m.status === "ACTIVE" && activeAdmins <= 1;
+            return (
+              <li key={m.id} className="st-member">
                 <span className="st-avatar" aria-hidden="true">{initialsFrom(m.user?.fullName || m.user?.email || "?")}</span>
-                <div className="ds-row-text">
-                  <span className="ds-row-name">{m.user?.fullName || m.user?.email}{isSelf && <span className="st-you"> (you)</span>}</span>
-                  <div className="ds-row-desc">{m.user?.email}</div>
-                  <div className="ds-row-meta tnum">
-                    <span>{ROLE_LABELS[m.role] || m.role}</span>
-                    <span className={`status-dot ${m.status === "SUSPENDED" ? "failed" : ""}`}>{m.status === "SUSPENDED" ? "Suspended" : "Active"}</span>
-                    <span>Joined {dateLabel(m.joinedAt)}</span>
-                  </div>
+                <div className="st-member-who">
+                  <span className="st-member-name">{m.user?.fullName || m.user?.email}{isSelf && <span className="st-you"> (you)</span>}</span>
+                  <span className="st-member-email">{m.user?.email}</span>
                 </div>
-              </div>
-              <div className="ds-row-actions">
-                {lastAdmin
-                  ? <span className="st-locked" title="An organisation needs at least one active administrator">Last administrator</span>
-                  : <MemberMenu member={m} isSelf={isSelf} onRole={(r) => changeRole(m, r)} onStatus={(s) => changeStatus(m, s)} onRemove={() => remove(m)} />}
-              </div>
-              {rowState.id === m.id && rowState.message && <p className={`rp-row-error ${rowState.tone === "ok" ? "st-ok-text" : rowState.tone === "err" ? "" : "st-muted-text"}`} role={rowState.tone === "err" ? "alert" : "status"}>{rowState.message}</p>}
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+                <span className="st-member-role">{ROLE_LABELS[m.role] || m.role}</span>
+                <span className={`status-dot st-member-status ${m.status === "SUSPENDED" ? "failed" : ""}`}>{m.status === "SUSPENDED" ? "Suspended" : "Active"}</span>
+                <span className="st-member-joined tnum">Joined {dateLabel(m.joinedAt)}</span>
+                <div className="st-member-actions">
+                  {lastAdmin
+                    ? <span className="st-locked" title="An organisation needs at least one active administrator">Last administrator</span>
+                    : <MemberMenu member={m} isSelf={isSelf} onRole={(r) => changeRole(m, r)} onStatus={(s) => changeStatus(m, s)} onRemove={() => remove(m)} />}
+                </div>
+                {rowState.id === m.id && rowState.message && <p className={`st-member-msg ${rowState.tone === "ok" ? "st-ok-text" : rowState.tone === "err" ? "st-err" : "st-muted-text"}`} role={rowState.tone === "err" ? "alert" : "status"}>{rowState.message}</p>}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    </div>
   );
 }
 
 function RolesSection({ currentRole }) {
   const mark = (v) => (v === true ? <Check size={16} strokeWidth={2.25} className="st-yes" aria-label="Yes" /> : v === false ? <Minus size={16} className="st-no" aria-label="No" /> : <span className="st-partial">{v}</span>);
   return (
-    <section aria-labelledby="st-roles-title">
-      <h2 id="st-roles-title" className="st-h2">Roles and permissions</h2>
-      <p className="st-lead">Every member has one role. Hosptic checks these permissions on every request. Your role is {ROLE_LABELS[currentRole] || "not set"}.</p>
+    <section className="st-card" aria-labelledby="st-roles-title">
+      <header className="st-card-head">
+        <h2 id="st-roles-title" className="st-h2">Roles and permissions</h2>
+        <p className="st-lead">Every member has one role, and Hosptic checks it on every request. Your role is {ROLE_LABELS[currentRole] || "not set"}.</p>
+      </header>
       <ul className="st-roles">
         {ROLE_ORDER.map((r) => (
           <li key={r} className={r === currentRole ? "is-current" : ""}>
@@ -301,25 +323,23 @@ function RolesSection({ currentRole }) {
           </li>
         ))}
       </ul>
-      <div className="card table-card">
-        <div className="table-scroll">
-          <table className="data st-matrix">
-            <thead>
-              <tr>
-                <th scope="col">Action</th>
-                {ROLE_ORDER.map((r) => <th key={r} scope="col" className={`c ${r === currentRole ? "is-current" : ""}`}>{ROLE_LABELS[r]}</th>)}
+      <div className="table-scroll">
+        <table className="data st-matrix">
+          <thead>
+            <tr>
+              <th scope="col">What they can do</th>
+              {ROLE_ORDER.map((r) => <th key={r} scope="col" className={`c ${r === currentRole ? "is-current" : ""}`}>{ROLE_LABELS[r]}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {ROLE_MATRIX.map(([action, ...cells]) => (
+              <tr key={action}>
+                <th scope="row">{action}</th>
+                {cells.map((v, i) => <td key={i} className={`c ${ROLE_ORDER[i] === currentRole ? "is-current" : ""}`}>{mark(v)}</td>)}
               </tr>
-            </thead>
-            <tbody>
-              {ROLE_MATRIX.map(([action, ...cells]) => (
-                <tr key={action}>
-                  <th scope="row">{action}</th>
-                  {cells.map((v, i) => <td key={i} className={`c ${ROLE_ORDER[i] === currentRole ? "is-current" : ""}`}>{mark(v)}</td>)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   );
@@ -327,26 +347,31 @@ function RolesSection({ currentRole }) {
 
 function AccountSection({ session }) {
   return (
-    <section aria-labelledby="st-account-title">
-      <h2 id="st-account-title" className="st-h2">Account</h2>
-      <p className="st-lead">Your personal sign-in. It is separate from the organisation settings.</p>
-      <div className="st-account">
-        <span className="st-avatar lg" aria-hidden="true">{initialsFrom(session?.user?.fullName || "")}</span>
-        <dl className="ds-facts">
-          <div><dt>Name</dt><dd>{session?.user?.fullName || "—"}</dd></div>
+    <div className="st-stack">
+      <section className="st-card" aria-labelledby="st-account-title">
+        <header className="st-card-head st-account-head">
+          <span className="st-avatar lg" aria-hidden="true">{initialsFrom(session?.user?.fullName || "")}</span>
+          <div>
+            <h2 id="st-account-title" className="st-h2">{session?.user?.fullName || "Your account"}</h2>
+            <p className="st-lead">Your personal sign-in, separate from the organisation settings.</p>
+          </div>
+        </header>
+        <dl className="st-rows">
           <div><dt>Email</dt><dd>{session?.user?.email || "—"}</dd></div>
           <div><dt>Role</dt><dd>{ROLE_LABELS[session?.role] || "—"}</dd></div>
           <div><dt>Organisation</dt><dd>{session?.organization?.name || "—"}</dd></div>
+          <div><dt>Name, email and password</dt><dd className="st-quiet">Changes are not available yet</dd></div>
         </dl>
-      </div>
-      <div className="st-signout">
-        <div>
-          <p className="st-row-title">Sign out</p>
-          <p className="st-row-text">Ends your session and clears workspace data saved on this device.</p>
+      </section>
+      <section className="st-card" aria-labelledby="st-signout-title">
+        <div className="st-card-body st-signout">
+          <div>
+            <h2 id="st-signout-title" className="st-row-title">Sign out</h2>
+            <p className="st-row-text">Ends your session and clears workspace data saved on this device.</p>
+          </div>
+          <SignOutButton variant="button" />
         </div>
-        <SignOutButton variant="button" />
-      </div>
-      <p className="st-note">Changing your name, email or password is not available yet.</p>
-    </section>
+      </section>
+    </div>
   );
 }
