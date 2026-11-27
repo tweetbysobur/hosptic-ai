@@ -148,13 +148,13 @@ function ColumnsPanel({ columns, rowCount }) {
                 <tr key={c.name}>
                   <td>
                     <span className="col-name">{c.name}</span>
-                    {c.isSensitive && <span className="col-flag">Personal data, excluded</span>}
+                    {c.isSensitive && <span className="col-flag" title="Personal data: masked and excluded from analysis"><ShieldCheck size={13} strokeWidth={1.75} aria-hidden="true" /> Excluded</span>}
                   </td>
                   <td className="ds-muted">{TYPE_LABEL[c.inferredType] || c.inferredType}</td>
                   <td>
                     <div className="miss">
-                      <span className="miss-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, share * 100)}%` }} className={share >= 0.2 ? "high" : ""} /></span>
-                      <span className="tnum">{c.missingCount ? `${c.missingCount.toLocaleString()} (${pct(c.missingCount, rowCount)})` : "None"}</span>
+                      {c.missingCount > 0 && <span className="miss-bar" aria-hidden="true"><i style={{ width: `${Math.max(4, Math.min(100, share * 100))}%` }} className={share >= 0.2 ? "high" : ""} /></span>}
+                      <span className={`tnum ${c.missingCount ? "" : "ds-quiet"}`}>{c.missingCount ? `${c.missingCount.toLocaleString()} (${pct(c.missingCount, rowCount)})` : "None"}</span>
                     </div>
                   </td>
                   <td className="r tnum">{(c.uniqueCount ?? 0).toLocaleString()}</td>
@@ -178,7 +178,7 @@ function PreviewPanel({ adapter, datasetId }) {
     <>
       <p className="ds-panel-note tnum">
         First {rows.length.toLocaleString()} of {(totalRows ?? rows.length).toLocaleString()} rows.
-        {maskedColumns.length > 0 && " Personal-data columns are masked."}
+
       </p>
       <div className="card table-card">
         <div className="table-scroll ds-preview-scroll">
@@ -195,7 +195,7 @@ function PreviewPanel({ adapter, datasetId }) {
                   <td className="r row-num tnum">{i + 1}</td>
                   {headers.map((h) => {
                     const v = r[h];
-                    if (masked.has(h) || v === "[masked]") return <td key={h}><span className="cell-masked">Masked</span></td>;
+                    if (masked.has(h) || v === "[masked]") return <td key={h}><span className="cell-masked">masked</span></td>;
                     if (v === null || v === undefined || v === "") return <td key={h}><span className="cell-empty">—</span></td>;
                     return <td key={h} className="tnum">{v}</td>;
                   })}

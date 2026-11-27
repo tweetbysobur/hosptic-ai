@@ -477,3 +477,19 @@ button.ds-row-name:hover { color: var(--brand-ink); }
 .issue-col { color: var(--ink-3); }
 .issue p { margin: 3px 0 0; font-size: 14px; color: var(--ink); }
 .rec-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--ink); }
+
+/* Dataset library polish: no tiles, no tinted pills, quieter repeats. */
+.ds-row-icon { flex: none; margin-top: 2px; color: var(--ink-3); }
+.ds-row-flag { color: var(--brand-ink); }
+.ds-row-flag::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--brand); margin-right: 6px; vertical-align: middle; }
+.ds-row { padding: 18px 20px; transition: background-color 140ms var(--ease); }
+.ds-row:hover { background: #fcfaf9; }
+.ds-row-name { font-size: 15.5px; letter-spacing: -0.01em; }
+.ds-list { border-radius: 16px; box-shadow: 0 1px 2px rgba(37, 42, 52, 0.03); }
+.ds-cols .col-flag { display: inline-flex; align-items: center; gap: 4px; margin-left: 10px; padding: 0; background: none; border-radius: 0; font-size: 12px; font-weight: 500; color: var(--brand-ink); }
+.ds-quiet { color: var(--ink-3); }
+.cell-masked { padding: 0; background: none; border-radius: 0; font-size: 12.5px; font-style: italic; color: var(--ink-3); }
+.ds-privacy { background: transparent; border: 1px solid #ffd0da; padding: 12px 16px; }
+.ds-facts dd { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.ds-tab { font-size: 14.5px; }
+.issue-list, .ds-list, .table-card { border-color: var(--border); }

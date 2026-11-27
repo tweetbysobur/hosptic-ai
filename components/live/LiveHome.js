@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Upload, FileSpreadsheet, RotateCcw, Trash2, ArrowRight, Search, ShieldCheck } from "lucide-react";
+import { Upload, FileSpreadsheet, RotateCcw, Trash2, ArrowRight, Search } from "lucide-react";
 import { plural, fileSizeLabel } from "@/lib/format";
 import { relativeTime } from "@/lib/store";
 import { UPLOAD_MAX_MB } from "@/lib/workspace/upload";
@@ -96,13 +96,13 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, canDele
             <span className="sr-only">Search datasets</span>
             <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, description or file" />
           </label>
-          <div className="ds-filters" role="group" aria-label="Filter by status">
+          {FILTERS.filter(([k]) => k !== "all" && counts[k] > 0).length > 1 && <div className="ds-filters" role="group" aria-label="Filter by status">
             {FILTERS.filter(([k]) => k === "all" || counts[k] > 0).map(([k, label]) => (
               <button key={k} type="button" className={`ds-filter ${filter === k ? "on" : ""}`} aria-pressed={filter === k} onClick={() => setFilter(k)}>
                 {label} <span className="tnum">{counts[k]}</span>
               </button>
             ))}
-          </div>
+          </div>}
         </div>
 
         {shown.length === 0 ? (
@@ -117,7 +117,7 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, canDele
               return (
                 <li key={d.id} className="ds-row">
                   <div className="ds-row-main">
-                    <span className="ds-row-icon" aria-hidden="true"><FileSpreadsheet size={18} strokeWidth={1.6} /></span>
+                    <FileSpreadsheet size={18} strokeWidth={1.6} className="ds-row-icon" aria-hidden="true" />
                     <div className="ds-row-text">
                       {open ? (
                         <button type="button" className="ds-row-name" onClick={open}>{d.name}</button>
@@ -132,13 +132,12 @@ export default function LiveHome({ datasets, status, onRetry, canUpload, canDele
                         <span>{d.fileType} · {fileSizeLabel(d.fileSize)}</span>
                         <span title={d.createdAt ? new Date(d.createdAt).toLocaleString() : undefined}>{uploadedLabel(d.createdAt)}</span>
                         {d.sensitiveColumns?.length > 0 && (
-                          <span className="ds-row-flag"><ShieldCheck size={13} strokeWidth={1.75} aria-hidden="true" /> {plural(d.sensitiveColumns.length, "personal-data column", "personal-data columns")} excluded</span>
+                          <span className="ds-row-flag">{plural(d.sensitiveColumns.length, "personal-data column", "personal-data columns")} excluded</span>
                         )}
                       </div>
                     </div>
                   </div>
                   <div className="ds-row-actions">
-                    {open && <button type="button" className="btn ghost" onClick={open}>View</button>}
                     {onAnalyse && Array.isArray(d.variables) && (
                       <button type="button" className="btn" onClick={() => onAnalyse(d.id)}>Analyse <ArrowRight size={14} /></button>
                     )}
