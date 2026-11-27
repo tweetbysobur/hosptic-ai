@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, MessagesSquare, Database, FileText, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import { Plus, MessagesSquare, Database, FileText, Settings2, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import Link from "next/link";
 import Logo from "./Logo";
 import SignOutButton from "./auth/SignOutButton";
@@ -12,6 +12,7 @@ const NAV = [
   { id: "conversations", label: "Conversations", icon: MessagesSquare },
   { id: "datasets", label: "Datasets", icon: Database },
   { id: "reports", label: "Reports", icon: FileText },
+  { id: "settings", label: "Settings", icon: Settings2 },
 ];
 
 export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate, onNew, conversations, activeId, onOpenConversation, counts, onCloseDrawer, mode = "preview", canAnalyse = true, workspace = { name: "Hospital workspace", meta: "Member" } }) {
@@ -51,7 +52,7 @@ export default function Sidebar({ view, collapsed, onToggleCollapse, onNavigate,
       </button>}
 
       <nav className="sb-nav">
-        {NAV.filter((n) => canAnalyse || n.id === "datasets").map((n) => (
+        {NAV.filter((n) => canAnalyse || n.id === "datasets" || n.id === "settings").map((n) => (
           <button key={n.id} className="sb-link" aria-current={view === n.id || (!canAnalyse && n.id === "datasets") ? "page" : undefined} onClick={() => onNavigate(n.id)} title={n.label}>
             <n.icon size={16} strokeWidth={1.75} />
             <span className="hide-collapsed">{n.label}</span>

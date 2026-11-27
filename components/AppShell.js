@@ -13,6 +13,7 @@ import { ROLE_LABELS, permissionsFor } from "@/lib/auth/session";
 import LiveHome from "./live/LiveHome";
 import UploadDialog from "./live/UploadDialog";
 import DatasetDetail from "./live/DatasetDetail";
+import Settings from "./settings/Settings";
 import { ConfirmProvider, useConfirm } from "./ui/ConfirmDialog";
 
 export default function AppShell(props) {
@@ -49,8 +50,10 @@ function WorkspaceShell({ adapter = liveAdapter }) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const inFlight = useRef(false);
 
+  // The organisation name can change in Settings; the session keeps the name from sign-in.
+  const [orgName, setOrgName] = useState(null);
   const identity = session
-    ? { name: session.organization.name, meta: ROLE_LABELS[session.role] || "Member", user: session.user.fullName, email: session.user.email }
+    ? { name: orgName || session.organization.name, meta: ROLE_LABELS[session.role] || "Member", user: session.user.fullName, email: session.user.email }
     : adapter.identity;
   const storageKeys = adapter.storage;
 
@@ -231,7 +234,7 @@ function WorkspaceShell({ adapter = liveAdapter }) {
 
   const openedReport = reports.find((r) => r.id === openReportId);
   const sidebarView = view === "report" ? "reports" : view === "dataset" ? "datasets" : view;
-  const mobileTitle = view === "chat" ? (active?.title || "New analysis") : { conversations: "Conversations", datasets: "Datasets", dataset: "Dataset", reports: "Reports", report: "Report" }[view];
+  const mobileTitle = view === "chat" ? (active?.title || "New analysis") : { conversations: "Conversations", datasets: "Datasets", dataset: "Dataset", reports: "Reports", report: "Report", settings: "Settings" }[view];
   const noData = datasetsStatus !== "loading" && analysable.length === 0;
 
   const liveHome = (
@@ -338,6 +341,14 @@ function WorkspaceShell({ adapter = liveAdapter }) {
             onDownload={fetchReport}
             onOpenDataset={(id) => { setOpenDatasetId(id); setOpenDatasetTab("columns"); setView("dataset"); }}
             conversation={findConversation(openedReport.analysisId)}
+          />
+        )}
+        {view === "settings" && (
+          <Settings
+            adapter={adapter}
+            session={session ? { ...session, organization: { ...session.organization, name: orgName || session.organization.name } } : null}
+            permissions={permissions}
+            onOrganizationRenamed={setOrgName}
           />
         )}
       </main>
