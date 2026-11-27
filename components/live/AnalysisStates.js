@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RotateCcw, PenLine, Database, LogIn } from "lucide-react";
+import { ERROR_STATES as STATES, errorCopy as copyFor } from "@/lib/workspace/error-copy";
 
 // What the backend does for every question. Shown as the plan while the request runs; the backend
 // reports no live progress, so no step is marked as finished.
@@ -33,25 +34,15 @@ export function AnalysisProgress({ datasetName }) {
   );
 }
 
-const STATES = {
-  invalid: { title: "This question needs a little more detail", action: "rephrase" },
-  unsupported: { title: "This question can’t be answered with this dataset", action: "suggest" },
-  missing: { title: "The dataset isn’t available", action: "dataset" },
-  session: { title: "Your session has ended", action: "signin" },
-  forbidden: { title: "Your role can’t run this", action: null },
-  rate: { title: "Too many requests", action: "retry" },
-  timeout: { title: "The analysis took too long", action: "retry" },
-  network: { title: "The Hosptic service couldn’t be reached", action: "retry" },
-  failed: { title: "This analysis couldn’t be completed", action: "retry" },
-};
-
-export function AnalysisError({ error, onRetry, onRephrase, onChooseDataset, suggestions = [], onAsk }) {
+export function AnalysisError({ error, datasetName, onRetry, onRephrase, onChooseDataset, suggestions = [], onAsk }) {
   const state = STATES[error.kind] || STATES.failed;
+  const copy = copyFor(error, datasetName);
   return (
     <div className="notice analysis-error" role="alert">
       <div className="notice-body">
-        <div className="notice-title">{state.title}</div>
-        <div className="notice-text">{error.message}.</div>
+        <div className="notice-title">{copy.title}</div>
+        <div className="notice-text">{copy.text}</div>
+        {copy.reason && <div className="notice-reason">Reason given: {copy.reason.replace(/\.$/, "")}.</div>}
         {state.action === "suggest" && suggestions.length > 0 && (
           <div className="followups error-suggestions">
             {suggestions.map((q) => <button key={q} type="button" className="chip" onClick={() => onAsk(q)}>{q}</button>)}

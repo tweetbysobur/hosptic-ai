@@ -126,3 +126,8 @@ These are what to measure. No targets are set yet.
 - Frontend: Next.js App Router, JavaScript and JSX only, Tailwind CSS, Manrope, Hosptic brand colours.
 - Backend: Express, Prisma, PostgreSQL with row-level security, Z.ai.
 - Contract: `shared/contracts/openapi.yaml` is the source of truth between frontend and backend.
+
+## 12. Known backend issues
+
+- Scatter points for correlation and regression are sent as `{ x: outcome, y: predictor }`, while `visualizationData.x` names the predictor (`backend/src/analytics/engine.js`, `runCorrelation` and `runRegression`). The frontend swaps them back in `lib/workspace/live-mapping.js` so the predictor is on the x axis and matches the fit line. When the backend is fixed, remove the swap and update `tests/workspace/answer-corrections.test.js`.
+- ANOVA returns `degreesOfFreedom` as `{ between, within }`; other tests return a number. The frontend shows ANOVA as "2, 147".

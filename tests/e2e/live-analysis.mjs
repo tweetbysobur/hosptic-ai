@@ -78,6 +78,10 @@ try {
   check("answer has a computed headline", headline && headline.length > 10, headline);
   check("answer shows a chart", (await page.$$(".resp .recharts-wrapper")).length >= 1);
   check("technical details are available", (await page.$$(".resp .tech")).length === 1);
+  const stripLabels = await page.$$eval(".resp .stat-strip dt", (els) => els.map((e) => e.textContent));
+  check("statistics show as one strip without repeating the headline's p-value", (await page.$$(".resp .stat-strip")).length === 1 && (await page.$$(".resp .stat")).length === 0 && (!/p [<=]/.test(headline) || !stripLabels.includes("p-value")), stripLabels.join(","));
+  const chartTitle = await page.textContent(".resp .chart-title");
+  check("chart title names the grouping column", chartTitle === "length_of_stay by ward", chartTitle);
   await page.evaluate(() => { const t = document.querySelector(".thread"); if (t) { t.style.scrollBehavior = "auto"; t.scrollTop = 0; } });
   await page.waitForTimeout(300);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/a4-answer.png` });
@@ -89,6 +93,8 @@ try {
   await page.locator(".resp .followups .chip").first().click();
   await page.waitForFunction(() => document.querySelectorAll(".resp-headline").length >= 2, null, { timeout: 120000 });
   check("follow-up adds a second answer to the same conversation", (await page.$$(".resp")).length === 2);
+  check("a divider separates the new question from the previous answer", (await page.$$(".thread-inner > .turn-divider + .msg-user")).length >= 1);
+  check("the dataset chip is not repeated on the second answer", (await page.$$(".resp .resp-meta")).length === 1);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/a4b-follow-up.png` });
 
   // Too-short question: the rephrase state, without a request.
@@ -101,13 +107,13 @@ try {
 
   const firstAnswer = page.locator(".resp").first();
   await firstAnswer.locator("button", { hasText: "Create PDF report" }).click();
-  await page.waitForSelector(".report-card", { timeout: 60000 });
-  check("report button produces a PDF report card", (await page.textContent(".report-card")).includes("PDF report"));
+  await page.waitForSelector(".report-row", { timeout: 60000 });
+  check("report button produces a one-row confirmation", (await page.textContent(".report-row")).includes("PDF report") && (await page.$$(".report-row button:has-text('Download')")).length === 1);
   check("the analysis now shows its saved report", (await firstAnswer.locator(".report-action").textContent()).includes("saved under Reports"));
 
   await page.fill("#ask", "Generate a report of this analysis");
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelectorAll(".report-card").length >= 2, null, { timeout: 60000 });
+  await page.waitForFunction(() => document.querySelectorAll(".report-row").length >= 2, null, { timeout: 60000 });
   check("typing a report request still works", true);
 
   await page.click(".sb-link:has-text('Reports')");
@@ -116,6 +122,23 @@ try {
   const file = download.suggestedFilename();
   check("report downloads as a PDF", /\.pdf$/i.test(file), file);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/a5-reports.png` });
+
+  // Phone width: the composer note hides once the reader scrolls back into earlier answers.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.click(".sb-link:has-text('Conversations')").catch(() => {});
+  await page.reload({ waitUntil: "networkidle" });
+  await page.click('button[aria-label="Open menu"]');
+  await page.locator(".sb-item").first().click();
+  await page.waitForSelector(".resp-headline", { timeout: 20000 });
+  await page.evaluate(() => { const t = document.querySelector(".thread"); t.style.scrollBehavior = "auto"; t.scrollTop = t.scrollHeight; t.dispatchEvent(new Event("scroll")); });
+  await page.waitForTimeout(300);
+  const noteShownAtEnd = await page.$eval(".composer-note", (n) => !n.classList.contains("is-hidden"));
+  await page.evaluate(() => { const t = document.querySelector(".thread"); t.scrollTop = 0; t.dispatchEvent(new Event("scroll")); });
+  await page.waitForTimeout(300);
+  const noteHiddenScrolled = await page.$eval(".composer-note", (n) => n.classList.contains("is-hidden"));
+  check("mobile composer note hides while reading earlier answers", noteShownAtEnd && noteHiddenScrolled);
+  check("no horizontal overflow at 390px", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  await page.setViewportSize({ width: 1280, height: 800 });
 
   await page.reload({ waitUntil: "networkidle" });
   await page.click(".sb-link:has-text('Conversations')");

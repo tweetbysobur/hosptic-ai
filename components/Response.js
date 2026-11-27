@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ChevronDown, FlaskConical, FileText, Download, FilePlus2, Loader2 } from "lucide-react";
 import Chart from "./Chart";
-import { plural } from "@/lib/format";
 
 export function Evidence({ items }) {
   if (!items || !items.length) return null;
@@ -40,14 +39,14 @@ export function Evidence({ items }) {
           );
         if (e.kind === "stats")
           return (
-            <div className="stats-row" key={i}>
+            <dl className="stat-strip" key={i}>
               {e.items.map((s) => (
-                <div className="card stat" key={s.label}>
-                  <div className="stat-label">{s.label}</div>
-                  <div className="stat-value">{s.value}</div>
+                <div className="stat-cell" key={s.label}>
+                  <dt>{s.label}</dt>
+                  <dd className="tnum">{s.value}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           );
         return null;
       })}
@@ -121,13 +120,26 @@ function ReportAction({ response, existing, onCreate, onDownload }) {
   );
 }
 
-export default function Response({ response, onAsk, onOpenReport, onDownloadReport, onCreateReport = null, existingReport = null }) {
+export default function Response({ response, onAsk, onOpenReport, onDownloadReport, onCreateReport = null, existingReport = null, showDataset = true }) {
   const r = response;
+  // A report confirmation is one row: what was made and how to get it.
+  if (r.type === "report" && r.report) {
+    return (
+      <div className="report-row" role="status" aria-label="PDF report ready">
+        <FileText size={18} strokeWidth={1.6} className="report-row-icon" />
+        <div className="report-row-text">
+          <div className="report-row-title">{r.report.title}</div>
+          <div className="report-row-meta">PDF report saved under Reports</div>
+        </div>
+        <button type="button" className="btn" onClick={() => onDownloadReport?.(r.report)}><Download size={14} /> Download</button>
+      </div>
+    );
+  }
   return (
     <article className="resp" aria-label="Analysis">
-      <div className="resp-meta">
-        {r.dataset && <span className="ds">{r.dataset.name}</span>}
-      </div>
+      {showDataset && r.dataset && (
+        <div className="resp-meta"><span className="ds">{r.dataset.name}</span></div>
+      )}
 
       {/* Layer 1: main finding */}
       <h2 className="resp-headline">{r.headline}</h2>
@@ -137,17 +149,6 @@ export default function Response({ response, onAsk, onOpenReport, onDownloadRepo
         {(r.explanation || []).map((p, i) => <p key={i}>{p}</p>)}
       </div>
 
-      {r.type === "report" && r.report && (
-        <div className="card report-card">
-          <div className="doc-icon"><FileText size={20} strokeWidth={1.5} /></div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="report-title">{r.report.title}</div>
-            <div className="report-meta">{[r.report.pdf ? "PDF report" : plural(r.report.sections.length, "section", "sections"), r.report.dataset].filter(Boolean).join(" · ")}</div>
-          </div>
-          <button className="btn" onClick={() => onDownloadReport?.(r.report)}><Download size={14} /> Download</button>
-          {!r.report.pdf && <button className="btn primary" onClick={() => onOpenReport?.(r.report)}>Open</button>}
-        </div>
-      )}
 
       {/* Layer 3: supporting evidence */}
       {r.evidence?.length > 0 && (

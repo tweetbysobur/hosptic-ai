@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp, Plus, X, Check, Variable, Pencil, Trash2, ChartNoAxesColumn, TrendingUp, Search, GitCompareArrows, ChartScatter, Database, ShieldCheck } from "lucide-react";
 import { AnalysisProgress, AnalysisError } from "./live/AnalysisStates";
 import Response from "./Response";
@@ -73,6 +73,18 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
   const asked = new Set(messages.filter((m) => m.role === "user").map((m) => m.text.trim().toLowerCase()));
   const nextQuestions = starters.map((st) => st.q).filter((q) => !asked.has(q.toLowerCase())).slice(0, 3);
   const lastAnalysisId = [...messages].reverse().find((m) => m.role === "assistant" && m.response?.type === "analysis")?.id;
+  // The dataset chip shows on the first answer and whenever the dataset changes, not on every answer.
+  const showDatasetFor = new Set();
+  {
+    let prev = null;
+    for (const m of messages) {
+      if (m.role !== "assistant" || m.response?.type !== "analysis") continue;
+      const id = m.response.dataset?.id || null;
+      if (id !== prev) showDatasetFor.add(m.id);
+      prev = id;
+    }
+  }
+  const [scrolled, setScrolled] = useState(false);
   const reportFor = (analysisId) => reports.find((r) => r.analysisId === analysisId) || null;
 
   const composer = (
@@ -130,7 +142,7 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
         </div>
       </div>
       {messages.length > 0 && primary && (
-        <p className="composer-note">Each question is analysed on its own against {primary.name}. Name the columns you mean in follow-ups.</p>
+        <p className={`composer-note ${scrolled ? "is-hidden" : ""}`}>Each question is analysed on its own against {primary.name}. Name the columns you mean in follow-ups.</p>
       )}
     </div>
   );
@@ -184,13 +196,17 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
             </div>
           </div>
         ) : (
-          <div className="thread" ref={threadRef}>
+          <div className="thread" ref={threadRef} onScroll={(e) => { const s = e.currentTarget; setScrolled(s.scrollHeight - s.scrollTop - s.clientHeight > 80); }}>
             <div className="thread-inner">
               {messages.map((m, i) =>
                 m.role === "user" ? (
                   // The first question is already the conversation title in the header.
-                  i === 0 && conversation && titleFrom(m.text) === conversation.title ? null :
-                  <div className="msg-user" key={m.id}>{m.text}</div>
+                  i === 0 && conversation && titleFrom(m.text) === conversation.title ? null : (
+                    <Fragment key={m.id}>
+                      {i > 0 && <hr className="turn-divider" aria-hidden="true" />}
+                      <div className="msg-user">{m.text}</div>
+                    </Fragment>
+                  )
                 ) : (
                   <Response
                     key={m.id}
@@ -200,6 +216,7 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
                     onDownloadReport={onDownloadReport}
                     onCreateReport={onCreateReport}
                     existingReport={m.response?.analysisId ? reportFor(m.response.analysisId) : null}
+                    showDataset={showDatasetFor.has(m.id)}
                   />
                 )
               )}
@@ -207,6 +224,7 @@ export default function Workspace({ conversation, datasets, selectedDatasets, on
               {error && (
                 <AnalysisError
                   error={error}
+                  datasetName={primary?.name}
                   onRetry={onRetry}
                   onRephrase={() => taRef.current?.focus()}
                   onChooseDataset={() => setPickerOpen(true)}

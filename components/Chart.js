@@ -205,12 +205,15 @@ function BoxPlot({ chart }) {
       </g>
     );
   };
-  const box = (bottom) => (p) => {
-    const { x, y, width, height } = p;
+  // The median is the line between the lower and upper box. Coral marks only the group the
+  // analysis supports as highest (chart.highlight); every other box uses the standard ink.
+  const box = (upper) => (p) => {
+    const { x, y, width, height, payload } = p;
+    const hot = chart.highlight && payload?.[chart.xKey] === chart.highlight;
     return (
       <g>
-        <rect x={x} y={y} width={width} height={Math.max(height, 0)} fill="#ebe5e2" stroke="var(--chart-primary)" strokeWidth={1.25} />
-        {bottom && <line x1={x} x2={x + width} y1={y} y2={y} stroke="var(--chart-highlight)" strokeWidth={2.5} />}
+        <rect x={x} y={y} width={width} height={Math.max(height, 0)} fill={hot ? "var(--brand-soft)" : "#ebe5e2"} stroke={hot ? "var(--chart-highlight)" : "var(--chart-primary)"} strokeWidth={1.25} />
+        {!upper && <line x1={x} x2={x + width} y1={y} y2={y} stroke={hot ? "var(--brand-ink)" : "var(--chart-primary)"} strokeWidth={2.25} />}
       </g>
     );
   };

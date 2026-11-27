@@ -68,7 +68,7 @@ export function ReportsPage({ reports, conversations, onOpen, onDownload, onDele
         <div className="page-head">
           <div>
             <h1>Reports</h1>
-            <p>PDF reports from your organisation&rsquo;s analyses. Ask &ldquo;Generate a report&rdquo; after any analysis to create one.</p>
+            <p>PDF reports from your organisation&rsquo;s analyses. Use Create PDF report under any analysis to add one.</p>
           </div>
         </div>
         <div className="list">
